@@ -1,32 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="uk_UA">
+<TS version="2.1" language="zh_TW">
 <context>
     <name>DownloadExtractThread</name>
     <message>
         <location filename="../downloadextractthread.cpp" line="196"/>
         <location filename="../downloadextractthread.cpp" line="385"/>
         <source>Error extracting archive: %1</source>
-        <translation>Помилка розпакування архіва: %1</translation>
+        <translation>解壓縮檔案時發生錯誤：%1</translation>
     </message>
     <message>
         <location filename="../downloadextractthread.cpp" line="261"/>
         <source>Error mounting FAT32 partition</source>
-        <translation>Помилка монтування FAT32 розділу</translation>
+        <translation>掛載 FAT32 分割區時發生錯誤</translation>
     </message>
     <message>
         <location filename="../downloadextractthread.cpp" line="281"/>
         <source>Operating system did not mount FAT32 partition</source>
-        <translation>Операційна система не монтувала FAT32 розділ</translation>
+        <translation>作業系統未掛載 FAT32 分割區</translation>
     </message>
     <message>
         <location filename="../downloadextractthread.cpp" line="304"/>
         <source>Error changing to directory &apos;%1&apos;</source>
-        <translation>Помилка при зміні каталогу на &apos;%1&apos;</translation>
-    </message>
-    <message>
-        <source>Error writing to storage</source>
-        <translation type="vanished">Помилка запису на накопичувач</translation>
+        <translation>變更至目錄 &apos;%1&apos; 時發生錯誤</translation>
     </message>
 </context>
 <context>
@@ -34,124 +30,124 @@
     <message>
         <location filename="../downloadthread.cpp" line="118"/>
         <source>unmounting drive</source>
-        <translation>диск від&apos;єднується</translation>
+        <translation>正在卸載磁碟</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="138"/>
         <source>opening drive</source>
-        <translation>диск відкривається</translation>
+        <translation>正在開啟磁碟</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="166"/>
         <source>Error running diskpart: %1</source>
-        <translation>Помилка при виконанні diskpart: %1</translation>
+        <translation>執行 diskpart 時發生錯誤：%1</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="187"/>
         <source>Error removing existing partitions</source>
-        <translation>Помилка при видаленні існуючих розділів</translation>
+        <translation>移除現有分割區時發生錯誤</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="213"/>
         <source>Authentication cancelled</source>
-        <translation>Аутентифікація скасована</translation>
+        <translation>已取消驗證</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="216"/>
         <source>Error running authopen to gain access to disk device &apos;%1&apos;</source>
-        <translation>Помилка виконання authopen для отримання доступу до пристроя &apos;%1&apos;</translation>
+        <translation>執行 authopen 以獲取磁碟裝置 &apos;%1&apos; 存取權限時發生錯誤</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="217"/>
         <source>Please verify if &apos;Raspberry Pi Imager&apos; is allowed access to &apos;removable volumes&apos; in privacy settings (under &apos;files and folders&apos; or alternatively give it &apos;full disk access&apos;).</source>
-        <translation>Переконайтеся, що у Raspberry Pi Imager у налаштуваннях приватності (у розділі &quot;файли та каталоги&quot;) є доступ до змінних розділів. Або дайте програмі доступ до усього диску.</translation>
+        <translation>請確認在隱私設定中是否允許 &apos;Raspberry Pi Imager&apos; 存取 &apos;可移除磁碟&apos;（在 &apos;檔案和資料夾&apos; 下，或者給予它 &apos;完全磁碟存取權&apos;）。</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="239"/>
         <source>Cannot open storage device &apos;%1&apos;.</source>
-        <translation>Не вдалося відкрити накопичувач &apos;%1&apos;.</translation>
+        <translation>無法開啟儲存裝置 &apos;%1&apos;。</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="281"/>
         <source>discarding existing data on drive</source>
-        <translation>видалення існуючих даних на диску</translation>
+        <translation>正在丟棄磁碟上的現有資料</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="301"/>
         <source>zeroing out first and last MB of drive</source>
-        <translation>обнулювання першого і останнього мегабайта диску</translation>
+        <translation>正在將磁碟的第一個和最後一個 MB 清除</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="307"/>
         <source>Write error while zero&apos;ing out MBR</source>
-        <translation>Помилка при обнулюванні MBR</translation>
+        <translation>在將 MBR 清除時寫入錯誤</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="319"/>
         <source>Write error while trying to zero out last part of card.&lt;br&gt;Card could be advertising wrong capacity (possible counterfeit).</source>
-        <translation>Помилка запису під час обнулювання останнього розділу карти пам&apos;яті.&lt;br&gt;Можливо заявлений об&apos;єм карти не збігається з реальним (можливо карта є підробленою).</translation>
+        <translation>嘗試將卡的最後部分清除時寫入錯誤。&lt;br&gt;卡可能在廣告錯誤的容量（可能是偽造的）。</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="408"/>
         <source>starting download</source>
-        <translation>початок завантаження</translation>
+        <translation>開始下載</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="466"/>
         <source>Error downloading: %1</source>
-        <translation>Помилка завантаження: %1</translation>
+        <translation>下載時發生錯誤：%1</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="663"/>
         <source>Access denied error while writing file to disk.</source>
-        <translation>Помилка доступу при записі файлу на диск.</translation>
+        <translation>寫入檔案至磁碟時存取被拒絕的錯誤。</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="668"/>
         <source>Controlled Folder Access seems to be enabled. Please add both rpi-imager.exe and fat32format.exe to the list of allowed apps and try again.</source>
-        <translation>Схоже, що увімкнено контрольований доступ до каталогу (Controlled Folder Access). Додайте rpi-imager.exe і fat32format.exe в список виключення та спробуйте ще раз.</translation>
+        <translation>似乎已啟用受控資料夾存取。請將 rpi-imager.exe 和 fat32format.exe 兩者都加入允許的應用程式清單，然後再試一次。</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="675"/>
         <source>Error writing file to disk</source>
-        <translation>Помилка запису файлу на диск</translation>
+        <translation>寫入檔案至磁碟時發生錯誤</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="697"/>
         <source>Download corrupt. Hash does not match</source>
-        <translation>Завантаження пошкоджено. Хеш сума не збігається</translation>
+        <translation>下載損壞。雜湊值不符</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="709"/>
         <location filename="../downloadthread.cpp" line="761"/>
         <source>Error writing to storage (while flushing)</source>
-        <translation>Помилка запису на накопичувач (при скидуванні)</translation>
+        <translation>寫入儲存裝置時發生錯誤（在清除時）</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="716"/>
         <location filename="../downloadthread.cpp" line="768"/>
         <source>Error writing to storage (while fsync)</source>
-        <translation>Помилка запису на накопичувач (при виконанні fsync)</translation>
+        <translation>寫入儲存裝置時發生錯誤（在 fsync 時）</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="751"/>
         <source>Error writing first block (partition table)</source>
-        <translation>Помилка під час запису першого блоку (таблиця розділів)</translation>
+        <translation>寫入第一個區塊（分割表）時發生錯誤</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="826"/>
         <source>Error reading from storage.&lt;br&gt;SD card may be broken.</source>
-        <translation>Помилка читання накопичувача.&lt;br&gt;SD-карта пам&apos;яті може бути пошкоджена.</translation>
+        <translation>從儲存裝置讀取時發生錯誤。&lt;br&gt;SD 卡可能已損壞。</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="845"/>
         <source>Verifying write failed. Contents of SD card is different from what was written to it.</source>
-        <translation>Помилка перевірки запису. Зміст SD-карти пам&apos;яті відрізняється від того, що було записано туди.</translation>
+        <translation>驗證寫入失敗。SD 卡的內容與寫入的內容不一致。</translation>
     </message>
     <message>
         <location filename="../downloadthread.cpp" line="898"/>
         <source>Customizing image</source>
-        <translation>Налаштування образа</translation>
+        <translation>自訂映像檔</translation>
     </message>
 </context>
 <context>
@@ -161,57 +157,57 @@
         <location filename="../driveformatthread.cpp" line="124"/>
         <location filename="../driveformatthread.cpp" line="185"/>
         <source>Error partitioning: %1</source>
-        <translation>Помилка створення роздіу: %1</translation>
+        <translation>分割時發生錯誤：%1</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="84"/>
         <source>Error starting fat32format</source>
-        <translation>Помилка запуску fat32format</translation>
+        <translation>開始執行 fat32format 時發生錯誤</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="94"/>
         <source>Error running fat32format: %1</source>
-        <translation>Помилка під час виконання fat32format: %1</translation>
+        <translation>執行 fat32format 時發生錯誤：%1</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="104"/>
         <source>Error determining new drive letter</source>
-        <translation>Помилка визначення  нової букви диску</translation>
+        <translation>確定新磁碟機代號時發生錯誤</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="109"/>
         <source>Invalid device: %1</source>
-        <translation>Не правильний пристрій: %1</translation>
+        <translation>無效裝置：%1</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="146"/>
         <source>Error formatting (through udisks2)</source>
-        <translation>Помилка форматування (через udisks2)</translation>
+        <translation>格式化時發生錯誤（透過 udisks2）</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="174"/>
         <source>Error starting sfdisk</source>
-        <translation>Помилка запуску sfdisk</translation>
+        <translation>開始執行 sfdisk 時發生錯誤</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="199"/>
         <source>Partitioning did not create expected FAT partition %1</source>
-        <translation>При створенні розділів не було створено очікуваний розділ FAT %1</translation>
+        <translation>並未建立預期的 FAT 分割區 %1</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="208"/>
         <source>Error starting mkfs.fat</source>
-        <translation>Помилка запуску mkfs.fat</translation>
+        <translation>開始執行 mkfs.fat 時發生錯誤</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="218"/>
         <source>Error running mkfs.fat: %1</source>
-        <translation>Помилка виконання mkfs.fat: %1</translation>
+        <translation>執行 mkfs.fat 時發生錯誤：%1</translation>
     </message>
     <message>
         <location filename="../driveformatthread.cpp" line="225"/>
         <source>Formatting not implemented for this platform</source>
-        <translation>Форматування не доступно на цій платформі</translation>
+        <translation>此平台未實作格式化</translation>
     </message>
 </context>
 <context>
@@ -219,27 +215,27 @@
     <message>
         <location filename="../imagewriter.cpp" line="248"/>
         <source>Storage capacity is not large enough.&lt;br&gt;Needs to be at least %1 GB.</source>
-        <translation>Місця на накопичувачі недостатньо.&lt;br&gt;Треба, щоб було хоча б %1 ГБ.</translation>
+        <translation>儲存容量不足。&lt;br&gt;至少需要 %1 GB。</translation>
     </message>
     <message>
         <location filename="../imagewriter.cpp" line="254"/>
         <source>Input file is not a valid disk image.&lt;br&gt;File size %1 bytes is not a multiple of 512 bytes.</source>
-        <translation>Обраний файл не є правильним образом диску.&lt;br&gt;Розмір файла %1 байт не є кратним 512 байт.</translation>
+        <translation>輸入檔案不是有效的磁碟映像檔。&lt;br&gt;檔案大小 %1 位元組不是 512 位元組的倍數。</translation>
     </message>
     <message>
         <location filename="../imagewriter.cpp" line="442"/>
         <source>Downloading and writing image</source>
-        <translation>Завантаження і запис образу</translation>
+        <translation>正在下載並寫入映像檔</translation>
     </message>
     <message>
         <location filename="../imagewriter.cpp" line="575"/>
         <source>Select image</source>
-        <translation>Обрати образ</translation>
+        <translation>選擇映像檔</translation>
     </message>
     <message>
         <location filename="../imagewriter.cpp" line="896"/>
         <source>Would you like to prefill the wifi password from the system keychain?</source>
-        <translation>Вказати пароль від Wi-Fi автоматично із системного ланцюга ключів?</translation>
+        <translation>您是否想要從系統鑰匙圈預填 Wi-Fi 密碼？</translation>
     </message>
 </context>
 <context>
@@ -247,12 +243,12 @@
     <message>
         <location filename="../localfileextractthread.cpp" line="34"/>
         <source>opening image file</source>
-        <translation>відкривання файлу образа</translation>
+        <translation>正在開啟映像檔</translation>
     </message>
     <message>
         <location filename="../localfileextractthread.cpp" line="39"/>
         <source>Error opening image file</source>
-        <translation>Помилка при відкриванні файлу образу</translation>
+        <translation>開啟映像檔時發生錯誤</translation>
     </message>
 </context>
 <context>
@@ -260,22 +256,22 @@
     <message>
         <location filename="../MsgPopup.qml" line="98"/>
         <source>NO</source>
-        <translation>НІ</translation>
+        <translation>否</translation>
     </message>
     <message>
         <location filename="../MsgPopup.qml" line="109"/>
         <source>YES</source>
-        <translation>ТАК</translation>
+        <translation>是</translation>
     </message>
     <message>
         <location filename="../MsgPopup.qml" line="120"/>
         <source>CONTINUE</source>
-        <translation>ПРОДОВЖИТИ</translation>
+        <translation>繼續</translation>
     </message>
     <message>
         <location filename="../MsgPopup.qml" line="130"/>
         <source>QUIT</source>
-        <translation>ВИЙТИ</translation>
+        <translation>結束</translation>
     </message>
 </context>
 <context>
@@ -283,147 +279,143 @@
     <message>
         <location filename="../OptionsPopup.qml" line="20"/>
         <source>OS Customization</source>
-        <translation>Налаштування ОС</translation>
+        <translation>作業系統客製化</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="52"/>
         <source>OS customization options</source>
-        <translation>Опції налаштування ОС</translation>
+        <translation>作業系統客製化選項</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="57"/>
         <source>for this session only</source>
-        <translation>тільки для цієї сесії</translation>
+        <translation>僅此工作階段</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="58"/>
         <source>to always use</source>
-        <translation>для постійного використання</translation>
+        <translation>總是使用</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="71"/>
         <source>General</source>
-        <translation>Загальні</translation>
+        <translation>一般</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="79"/>
         <source>Services</source>
-        <translation>Сервіси</translation>
+        <translation>服務</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="82"/>
         <source>Options</source>
-        <translation>Налаштування</translation>
+        <translation>選項</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="98"/>
         <source>Set hostname:</source>
-        <translation>Встановити ім&apos;я хосту:</translation>
+        <translation>設定主機名稱：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="120"/>
         <source>Set username and password</source>
-        <translation>Встановити ім&apos;я користувача і пароль</translation>
+        <translation>設定使用者名稱和密碼</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="142"/>
         <source>Username:</source>
-        <translation>Ім&apos;я користувача:</translation>
+        <translation>使用者名稱：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="158"/>
         <location filename="../OptionsPopup.qml" line="219"/>
         <source>Password:</source>
-        <translation>Пароль:</translation>
+        <translation>密碼：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="186"/>
         <source>Configure wireless LAN</source>
-        <translation>Налаштувати бездротову LAN мережу</translation>
+        <translation>設定無線區域網路</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="205"/>
         <source>SSID:</source>
-        <translation>SSID:</translation>
+        <translation>SSID：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="238"/>
         <source>Show password</source>
-        <translation>Показати пароль</translation>
+        <translation>顯示密碼</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="244"/>
         <source>Hidden SSID</source>
-        <translation>Прихована SSID</translation>
+        <translation>隱藏 SSID</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="250"/>
         <source>Wireless LAN country:</source>
-        <translation>Країна бездротової LAN мережі:</translation>
+        <translation>無線網路國家/地區選項：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="261"/>
         <source>Set locale settings</source>
-        <translation>Змінити налаштування регіону</translation>
+        <translation>設定地區設定</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="271"/>
         <source>Time zone:</source>
-        <translation>Часова зона:</translation>
+        <translation>時區：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="281"/>
         <source>Keyboard layout:</source>
-        <translation>Розкладка клавіатури:</translation>
+        <translation>鍵盤配置：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="298"/>
         <source>Enable SSH</source>
-        <translation>Увімкнути SSH</translation>
+        <translation>啟用 SSH</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="317"/>
         <source>Use password authentication</source>
-        <translation>Використовувати аутентефікацію через пароль</translation>
+        <translation>使用密碼驗證</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="327"/>
         <source>Allow public-key authentication only</source>
-        <translation>Дозволити аутентифікацію лише через публічні ключі</translation>
+        <translation>僅允許公鑰驗證</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="345"/>
         <source>Set authorized_keys for &apos;%1&apos;:</source>
-        <translation>Встановити authorized_keys для &apos;%1&apos;:</translation>
+        <translation>設定 &apos;%1&apos; 的 authorized_keys：</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="357"/>
         <source>RUN SSH-KEYGEN</source>
-        <translation>ЗАПУСТИТИ SHH-KEYGEN</translation>
+        <translation>執行 SSH-KEYGEN</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="375"/>
         <source>Play sound when finished</source>
-        <translation>Відтворити звук після завершення</translation>
+        <translation>完成時播放聲音</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="379"/>
         <source>Eject media when finished</source>
-        <translation>Витягнути накопичувач після завершення</translation>
+        <translation>完成時彈出媒體</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="383"/>
         <source>Enable telemetry</source>
-        <translation>Увімкнути телеметрію</translation>
+        <translation>啟用遙測</translation>
     </message>
     <message>
         <location filename="../OptionsPopup.qml" line="397"/>
         <source>SAVE</source>
-        <translation>ЗБЕРЕГТИ</translation>
-    </message>
-    <message>
-        <source>Persistent settings</source>
-        <translation type="vanished">Постійні налаштування</translation>
+        <translation>儲存</translation>
     </message>
 </context>
 <context>
@@ -431,7 +423,7 @@
     <message>
         <location filename="../linux/linuxdrivelist.cpp" line="119"/>
         <source>Internal SD card reader</source>
-        <translation>Внутрішній считувач SD карт</translation>
+        <translation>內部 SD 卡讀卡機</translation>
     </message>
 </context>
 <context>
@@ -439,32 +431,32 @@
     <message>
         <location filename="../UseSavedSettingsPopup.qml" line="73"/>
         <source>Use OS customization?</source>
-        <translation>Використовувати налаштування ОС?</translation>
+        <translation>作業系統客製化？</translation>
     </message>
     <message>
         <location filename="../UseSavedSettingsPopup.qml" line="87"/>
         <source>Would you like to apply OS customization settings?</source>
-        <translation>Чи бажаєте ви прийняти налаштування ОС?</translation>
+        <translation>您是否想要套用作業系統客製化設定？</translation>
     </message>
     <message>
         <location filename="../UseSavedSettingsPopup.qml" line="97"/>
         <source>NO</source>
-        <translation>НІ</translation>
+        <translation>否</translation>
     </message>
     <message>
         <location filename="../UseSavedSettingsPopup.qml" line="107"/>
         <source>NO, CLEAR SETTINGS</source>
-        <translation>НІ, ОЧИСТИТИ НАЛАШТУВАННЯ</translation>
+        <translation>否，清除設定</translation>
     </message>
     <message>
         <location filename="../UseSavedSettingsPopup.qml" line="117"/>
         <source>YES</source>
-        <translation>ТАК</translation>
+        <translation>是</translation>
     </message>
     <message>
         <location filename="../UseSavedSettingsPopup.qml" line="127"/>
         <source>EDIT SETTINGS</source>
-        <translation>РЕДАГУВАТИ НАЛАШТУВАННЯ</translation>
+        <translation>編輯設定</translation>
     </message>
 </context>
 <context>
@@ -472,282 +464,282 @@
     <message>
         <location filename="../main.qml" line="22"/>
         <source>Raspberry Pi Imager v%1</source>
-        <translation>Raspberry Pi Imager, версія %1</translation>
+        <translation>Raspberry Pi Imager v%1</translation>
     </message>
     <message>
         <location filename="../main.qml" line="114"/>
         <location filename="../main.qml" line="467"/>
         <source>Raspberry Pi Device</source>
-        <translation>Пристрій Raspberry Pi</translation>
-    </message>
-    <message>
-        <location filename="../main.qml" line="126"/>
-        <source>CHOOSE DEVICE</source>
-        <translation>ОБРАТИ ПРИСТРІЙ</translation>
-    </message>
-    <message>
-        <location filename="../main.qml" line="138"/>
-        <source>Select this button to choose your target Raspberry Pi</source>
-        <translation>Оберіть цю кнопку, щоб обрати модель вашої Raspberry Pi</translation>
-    </message>
-    <message>
-        <location filename="../main.qml" line="97"/>
-        <location filename="../main.qml" line="413"/>
-        <source>Operating System</source>
-        <translation>Операційна система</translation>
+        <translation>Raspberry Pi 裝置</translation>
     </message>
     <message>
         <location filename="../main.qml" line="109"/>
-        <source>CHOOSE OS</source>
-        <translation>ОБРАТИ ОС</translation>
+        <source>CHOOSE DEVICE</source>
+        <translation>選擇裝置</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="121"/>
+        <location filename="../main.qml" line="120"/>
+        <source>Select this button to choose your target Raspberry Pi</source>
+        <translation>選擇此按鈕以選擇您的目標 Raspberry Pi</translation>
+    </message>
+    <message>
+        <location filename="../main.qml" line="132"/>
+        <location filename="../main.qml" line="413"/>
+        <source>Operating System</source>
+        <translation>作業系統</translation>
+    </message>
+    <message>
+        <location filename="../main.qml" line="144"/>
+        <source>CHOOSE OS</source>
+        <translation>選擇作業系統</translation>
+    </message>
+    <message>
+        <location filename="../main.qml" line="156"/>
         <source>Select this button to change the operating system</source>
-        <translation>Натисніть на цю кнопку, щоб змінити операційну систему</translation>
+        <translation>選擇此按鈕以變更作業系統</translation>
     </message>
     <message>
         <location filename="../main.qml" line="133"/>
         <location filename="../main.qml" line="780"/>
         <source>Storage</source>
-        <translation>Накопичувач</translation>
+        <translation>儲存裝置</translation>
     </message>
     <message>
         <location filename="../main.qml" line="145"/>
         <location filename="../main.qml" line="1108"/>
         <source>CHOOSE STORAGE</source>
-        <translation>ОБРАТИ НАКОПИЧУВАЧ</translation>
+        <translation>選擇儲存裝置</translation>
     </message>
     <message>
         <location filename="../main.qml" line="171"/>
         <source>WRITE</source>
-        <translation>ЗАПИСАТИ</translation>
+        <translation>寫入</translation>
     </message>
     <message>
         <location filename="../main.qml" line="155"/>
         <source>Select this button to change the destination storage device</source>
-        <translation>Натисніть цю кнопку, щоб змінити пристрій призначення</translation>
+        <translation>選擇此按鈕以變更目標儲存裝置</translation>
     </message>
     <message>
         <location filename="../main.qml" line="216"/>
         <source>CANCEL WRITE</source>
-        <translation>СКАСУВАТИ ЗАПИСУВАННЯ</translation>
+        <translation>取消寫入</translation>
     </message>
     <message>
         <location filename="../main.qml" line="219"/>
         <location filename="../main.qml" line="1035"/>
         <source>Cancelling...</source>
-        <translation>Скасування...</translation>
+        <translation>正在取消…</translation>
     </message>
     <message>
         <location filename="../main.qml" line="227"/>
         <source>CANCEL VERIFY</source>
-        <translation>СКАСУВАТИ ПЕРЕВІРКУ</translation>
+        <translation>取消驗證</translation>
     </message>
     <message>
         <location filename="../main.qml" line="230"/>
         <location filename="../main.qml" line="1058"/>
         <location filename="../main.qml" line="1127"/>
         <source>Finalizing...</source>
-        <translation>Завершення...</translation>
+        <translation>正在完成…</translation>
     </message>
     <message>
         <location filename="../main.qml" line="288"/>
         <source>Next</source>
-        <translation>Далі</translation>
+        <translation>下一步</translation>
     </message>
     <message>
         <location filename="../main.qml" line="175"/>
         <source>Select this button to start writing the image</source>
-        <translation>Натисніть цю кнопку, щоб розпочати запис образу</translation>
+        <translation>選擇此按鈕以開始寫入映像檔</translation>
     </message>
     <message>
         <location filename="../main.qml" line="245"/>
         <source>Select this button to access advanced settings</source>
-        <translation>Натисніть цю кнопку, щоб отримати доступ до розширених опцій</translation>
+        <translation>選擇此按鈕以存取進階設定</translation>
     </message>
     <message>
         <location filename="../main.qml" line="259"/>
         <source>Using custom repository: %1</source>
-        <translation>Користуючись власним репозиторієм: %1</translation>
+        <translation>使用自訂套件庫：%1</translation>
     </message>
     <message>
         <location filename="../main.qml" line="268"/>
         <source>Keyboard navigation: &lt;tab&gt; navigate to next button &lt;space&gt; press button/select item &lt;arrow up/down&gt; go up/down in lists</source>
-        <translation>Навігація клавіатурою: клавіша &lt;Tab&gt; переміститися на наступну кнопку, клавіша &lt;Пробіл&gt; натиснути кнопку/обрати елемент, клавіши з &lt;стрілками вниз/вгору&gt; переміститися вниз/вгору по списку</translation>
+        <translation>鍵盤操作：&lt;tab&gt; 移至下一個按鈕 &lt;space&gt; 按下按鈕/選取項目 &lt;arrow up/down&gt; 在清單中上移/下移</translation>
     </message>
     <message>
         <location filename="../main.qml" line="289"/>
         <source>Language: </source>
-        <translation>Мова: </translation>
+        <translation>語言：</translation>
     </message>
     <message>
         <location filename="../main.qml" line="312"/>
         <source>Keyboard: </source>
-        <translation>Клавіатура: </translation>
+        <translation>鍵盤：</translation>
     </message>
     <message>
         <location filename="../main.qml" line="437"/>
         <source>Pi model:</source>
-        <translation>Модель Raspberry Pi:</translation>
+        <translation>Pi 型號：</translation>
     </message>
     <message>
         <location filename="../main.qml" line="448"/>
         <source>[ All ]</source>
-        <translation>[Усі]</translation>
+        <translation>[ 全部 ]</translation>
     </message>
     <message>
         <location filename="../main.qml" line="528"/>
         <source>Back</source>
-        <translation>Назад</translation>
+        <translation>返回</translation>
     </message>
     <message>
         <location filename="../main.qml" line="529"/>
         <source>Go back to main menu</source>
-        <translation>Повернутися у головне меню</translation>
+        <translation>返回主選單</translation>
     </message>
     <message>
         <location filename="../main.qml" line="695"/>
         <source>Released: %1</source>
-        <translation>Випущено: %1</translation>
+        <translation>發布日期：%1</translation>
     </message>
     <message>
         <location filename="../main.qml" line="705"/>
         <source>Cached on your computer</source>
-        <translation>Кешовано на вашому комп&apos;ютері</translation>
+        <translation>已在您的電腦上快取</translation>
     </message>
     <message>
         <location filename="../main.qml" line="707"/>
         <source>Local file</source>
-        <translation>Локальний файл</translation>
+        <translation>本機檔案</translation>
     </message>
     <message>
         <location filename="../main.qml" line="708"/>
         <source>Online - %1 GB download</source>
-        <translation>Онлайн - потрібно завантажити %1 ГБ</translation>
+        <translation>線上 - %1 GB 下載</translation>
     </message>
     <message>
         <location filename="../main.qml" line="833"/>
         <location filename="../main.qml" line="885"/>
         <location filename="../main.qml" line="891"/>
         <source>Mounted as %1</source>
-        <translation>Примонтовано як %1</translation>
+        <translation>已掛載為 %1</translation>
     </message>
     <message>
         <location filename="../main.qml" line="887"/>
         <source>[WRITE PROTECTED]</source>
-        <translation>ЗАХИЩЕНО ВІД ЗАПИСУ</translation>
+        <translation>[寫入保護]</translation>
     </message>
     <message>
         <location filename="../main.qml" line="929"/>
         <source>Are you sure you want to quit?</source>
-        <translation>Бажаєте вийти?</translation>
+        <translation>您確定要結束嗎？</translation>
     </message>
     <message>
         <location filename="../main.qml" line="930"/>
         <source>Raspberry Pi Imager is still busy.&lt;br&gt;Are you sure you want to quit?</source>
-        <translation>Raspberry Pi Imager все ще зайнятий.&lt;br&gt;Ви впевнені, що бажаєте вийти?</translation>
+        <translation>Raspberry Pi Imager 仍在忙碌中。&lt;br&gt;您確定要結束嗎？</translation>
     </message>
     <message>
         <location filename="../main.qml" line="941"/>
         <source>Warning</source>
-        <translation>Увага</translation>
+        <translation>警告</translation>
     </message>
     <message>
         <location filename="../main.qml" line="949"/>
         <source>Preparing to write...</source>
-        <translation>Підготовка до запису...</translation>
+        <translation>正在準備寫入…</translation>
     </message>
     <message>
         <location filename="../main.qml" line="962"/>
         <source>All existing data on &apos;%1&apos; will be erased.&lt;br&gt;Are you sure you want to continue?</source>
-        <translation>Усі уснуючі дані у &apos;%1&apos; будуть видалені.&lt;br&gt; Ви впевнені, що бажаєте продовжити?</translation>
+        <translation>&apos;%1&apos; 上的所有現有資料將被清除。&lt;br&gt;您確定要繼續嗎？</translation>
     </message>
     <message>
         <location filename="../main.qml" line="973"/>
         <source>Update available</source>
-        <translation>Доступно оновлення</translation>
+        <translation>有可用的更新</translation>
     </message>
     <message>
         <location filename="../main.qml" line="974"/>
         <source>There is a newer version of Imager available.&lt;br&gt;Would you like to visit the website to download it?</source>
-        <translation>Доступна нова версія Imager.&lt;br&gt;Бажаєте завітати на сайт та завантажити її?</translation>
+        <translation>有新版本的 Imager 可供下載。&lt;br&gt;您是否想前往網站進行下載？</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1017"/>
         <source>Error downloading OS list from Internet</source>
-        <translation>Помилка завантаження списку ОС із Інтернету</translation>
+        <translation>從網路下載作業系統清單時發生錯誤</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1038"/>
         <source>Writing... %1%</source>
-        <translation>Записування...%1%</translation>
+        <translation>正在寫入… %1%</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1061"/>
         <source>Verifying... %1%</source>
-        <translation>Перевірка...%1%</translation>
+        <translation>正在驗證… %1%</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1068"/>
         <source>Preparing to write... (%1)</source>
-        <translation>Підготовка до запису... (%1)</translation>
+        <translation>正在準備寫入… (%1)</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1084"/>
         <source>Error</source>
-        <translation>Помилка</translation>
+        <translation>錯誤</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1091"/>
         <source>Write Successful</source>
-        <translation>Успішно записано</translation>
+        <translation>寫入成功</translation>
     </message>
     <message>
         <location filename="../main.qml" line="572"/>
         <location filename="../main.qml" line="1092"/>
         <source>Erase</source>
-        <translation>Видалити</translation>
+        <translation>清除</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1093"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been erased&lt;br&gt;&lt;br&gt;You can now remove the SD card from the reader</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; був успішно видалено.br&gt;&lt;br&gt; тепер можна дістати SD карту із считувача</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; 已被清除&lt;br&gt;&lt;br&gt;您現在可以從讀卡機中移除 SD 卡</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1100"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been written to &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;&lt;br&gt;You can now remove the SD card from the reader</source>
-        <translation>Записування &lt;b&gt;%1&lt;/b&gt; на &lt;b&gt;%2&lt;/b&gt; виконано &lt;br&gt;&lt;br&gt; Тепер можна дістати SD карту із считувача</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; 已寫入至 &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;&lt;br&gt;您現在可以從讀卡機中移除 SD 卡</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1202"/>
         <source>Error parsing os_list.json</source>
-        <translation>Помилка парсування os_list.json</translation>
+        <translation>解析 os_list.json 時發生錯誤</translation>
     </message>
     <message>
         <location filename="../main.qml" line="573"/>
         <source>Format card as FAT32</source>
-        <translation>Форматувати карту у FAT32</translation>
+        <translation>將記憶卡進行 FAT32 格式化</translation>
     </message>
     <message>
         <location filename="../main.qml" line="582"/>
         <source>Use custom</source>
-        <translation>Власний образ</translation>
+        <translation>使用自訂映像檔</translation>
     </message>
     <message>
         <location filename="../main.qml" line="583"/>
         <source>Select a custom .img from your computer</source>
-        <translation>Обрати власний .img з вашого комп&apos;ютера</translation>
+        <translation>從您的電腦選擇一個自訂的 .img 檔案</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1391"/>
         <source>Connect an USB stick containing images first.&lt;br&gt;The images must be located in the root folder of the USB stick.</source>
-        <translation>Спочатку під&apos;єднайте USB-накопичувач з образами.&lt;br&gt;Образи повинні знаходитися у корінному каталогу USB-накопичувача.</translation>
+        <translation>請先插入包含映像檔的 USB 隨身碟。&lt;br&gt;映像檔必須位於 USB 隨身碟的根目錄中。</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1407"/>
         <source>SD card is write protected.&lt;br&gt;Push the lock switch on the left side of the card upwards, and try again.</source>
-        <translation>SD карта захищена від запису.&lt;br&gt;перетягніть перемикач на лівій стороні картки вгору, і спробуйте ще раз.</translation>
+        <translation>SD 卡已啟用寫入保護。&lt;br&gt;請將卡片左側的鎖定開關向上推以解除保護，然後再試一次。</translation>
     </message>
 </context>
 </TS>
