@@ -1,3 +1,47 @@
+rpi-imager (1.8.5) unstable; urgency=medium
+
+  * Retry downloads on HTTP2 errors.
+  * Rename .desktop file to match DBus name, as some GNOME
+    desktop environments expect it that way.
+  * Disable Link Time Optimization as precaution against hard to
+    trace bugs.
+
+ -- Floris Bos <bos@je-eigen-domein.nl>  Sat, 20 Jan 2024 16:36:11 +0100
+
+rpi-imager (1.8.4) unstable; urgency=medium
+
+  * OS customisation: Fixed #531, which caused password entry
+                      to drop the first character
+  * OS customisation: Impose character limits on usernames &
+                      hostnames
+  * i18n: Added Polish translation
+  * i18n: Updated Catalan, Japanese translations
+  * cli: Fixed local file passing via --repo
+
+ -- Floris Bos <bos@je-eigen-domein.nl>  Fri, 22 Dec 2023 16:00:00 +0200
+
+rpi-imager (1.8.3) unstable; urgency=medium
+
+  * Home: Fixed "No filtering" option
+  * OS customisation: Fixed no-customisation flow
+
+ -- Floris Bos <bos@je-eigen-domein.nl>  Thu, 16 Nov 2023 14:00:00 +0200
+
+rpi-imager (1.8.2) unstable; urgency=medium
+
+  * Home: Device filtering reworked to download OS list eagerly
+  * OS List: Fixed 'Recommended' tag annotation
+  * i18n: Added zh-TW Traditional Chinese translation
+  * i18n: Updated Korean, German, Ukranian, translations
+  * build: Linux: Fix libdrm dependency requirement on non-embedded
+                  build.
+  * Commmon: Disable QML caching entirely
+  * OS customisation: Allow use if only cloudinit payload available
+  * OS customisation: Allow empty PSK for 'Open' WiFi networks.
+  * OS List: Use ImageList v4 URL
+
+ -- Floris Bos <bos@je-eigen-domein.nl>  Wed, 15 Nov 2023 20:16:16 +0200
+
 rpi-imager (1.8.1) unstable; urgency=medium
 
   * Hide empty categories when filtering

@@ -8,11 +8,13 @@ OPTION (ENABLE_TELEMETRY "Enable sending telemetry" ON)
 project(rpi-imager LANGUAGES CXX C)
 set(IMAGER_VERSION_MAJOR 1)
 set(IMAGER_VERSION_MINOR 8)
-set(IMAGER_VERSION_STR "${IMAGER_VERSION_MAJOR}.${IMAGER_VERSION_MINOR}.1")
-set(IMAGER_VERSION_CSV "${IMAGER_VERSION_MAJOR},${IMAGER_VERSION_MINOR},1,0")
+set(IMAGER_VERSION_STR "${IMAGER_VERSION_MAJOR}.${IMAGER_VERSION_MINOR}.5")
+set(IMAGER_VERSION_CSV "${IMAGER_VERSION_MAJOR},${IMAGER_VERSION_MINOR},5,0")
 add_definitions(-DIMAGER_VERSION_STR="${IMAGER_VERSION_STR}")
 add_definitions(-DIMAGER_VERSION_CSV=${IMAGER_VERSION_CSV})
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+#add_compile_options("-fsanitize=address")
+#add_link_options("-fsanitize=address")
 
 # Adding headers explicity so they are displayed in Qt Creator
 set(HEADERS config.h imagewriter.h networkaccessmanagerfactory.h nan.h drivelistitem.h drivelistmodel.h drivelistmodelpollthread.h driveformatthread.h powersaveblocker.h cli.h
@@ -27,7 +29,7 @@ if (APPLE)
         dependencies/drivelist/src/darwin/list.mm dependencies/drivelist/src/darwin/REDiskList.m icons/rpi-imager.icns)
     enable_language(OBJC C)
 elseif (UNIX)
-    set(DEPENDENCIES dependencies/mountutils/src/linux/functions.cpp linux/linuxdrivelist.cpp linux/networkmanagerapi.h linux/networkmanagerapi.cpp)
+    set(DEPENDENCIES dependencies/mountutils/src/linux/functions.cpp linux/linuxdrivelist.cpp linux/networkmanagerapi.h linux/networkmanagerapi.cpp linux/stpanalyzer.h linux/stpanalyzer.cpp)
     find_package(ZLIB)
     if(ZLIB_FOUND)
         set(EXTRALIBS ${EXTRALIBS} ZLIB::ZLIB)
@@ -129,7 +131,8 @@ endif()
 set(TRANSLATIONS i18n/rpi-imager_en.ts i18n/rpi-imager_nl.ts i18n/rpi-imager_zh.ts i18n/rpi-imager_tr.ts
     i18n/rpi-imager_fr.ts i18n/rpi-imager_de.ts i18n/rpi-imager_sk.ts i18n/rpi-imager_it.ts
     i18n/rpi-imager_ca.ts i18n/rpi-imager_sl.ts i18n/rpi-imager_ko.ts i18n/rpi-imager_ja.ts
-    i18n/rpi-imager_ru.ts i18n/rpi-imager_es.ts i18n/rpi-imager_uk.ts i18n/rpi-imager_zh-TW.ts)
+    i18n/rpi-imager_ru.ts i18n/rpi-imager_es.ts i18n/rpi-imager_uk.ts i18n/rpi-imager_zh-TW.ts
+    i18n/rpi-imager_pl.ts)
 #qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TRANSLATIONS})
 if (Qt5_FOUND)
     qt5_add_translation(QM_FILES ${TRANSLATIONS})
@@ -148,19 +151,6 @@ endif()
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY AUTOMOC ON)
 set_property(TARGET ${PROJECT_NAME} PROPERTY AUTORCC ON)
-
-if (NOT WIN32)
-    # Enable link time optimization if available
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT iposupported OUTPUT ipoerror)
-
-    if(iposupported)
-        message("Enabled LTO")
-        set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-    else()
-        message(STATUS "LTO not supported: <${ipoerror}>")
-    endif()
-endif()
 
 if(ENABLE_TELEMETRY)
     add_definitions(-DTELEMETRY_ENABLED_DEFAULT=true)
@@ -352,7 +342,7 @@ else()
 
     install(TARGETS rpi-imager DESTINATION bin)
     install(FILES icons/rpi-imager.png DESTINATION share/icons/hicolor/128x128/apps)
-    install(FILES linux/rpi-imager.desktop DESTINATION share/applications)
+    install(FILES linux/org.raspberrypi.rpi-imager.desktop DESTINATION share/applications)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/rpi-imager.metainfo.xml" DESTINATION share/metainfo)
 endif()
 

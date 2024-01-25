@@ -37,6 +37,8 @@
 #ifndef QT_NO_WIDGETS
 #include <QFileDialog>
 #include <QApplication>
+#else
+#include <QtPlatformHeaders/QEglFSFunctions>
 #endif
 #ifdef Q_OS_DARWIN
 #include <QMessageBox>
@@ -49,14 +51,19 @@
 #include <QProcessEnvironment>
 #endif
 
-#ifdef QT_NO_WIDGETS
-#include <QtPlatformHeaders/QEglFSFunctions>
+#ifdef Q_OS_LINUX
+#include "linux/stpanalyzer.h"
 #endif
+
+namespace {
+    constexpr uint MAX_SUBITEMS_DEPTH = 16;
+} // namespace anonymous
 
 ImageWriter::ImageWriter(QObject *parent)
     : QObject(parent), _repo(QUrl(QString(OSLIST_URL))), _dlnow(0), _verifynow(0),
       _engine(nullptr), _thread(nullptr), _verifyEnabled(false), _cachingEnabled(false),
-      _embeddedMode(false), _online(false), _customCacheFile(false), _trans(nullptr)
+      _embeddedMode(false), _online(false), _customCacheFile(false), _trans(nullptr),
+      _networkManager(this)
 {
     connect(&_polltimer, SIGNAL(timeout()), SLOT(pollProgress()));
 
@@ -70,6 +77,7 @@ ImageWriter::ImageWriter(QObject *parent)
         platform = "cli";
     }
 
+#ifdef Q_OS_LINUX
     if (platform == "eglfs" || platform == "linuxfb")
     {
         _embeddedMode = true;
@@ -93,7 +101,12 @@ ImageWriter::ImageWriter(QObject *parent)
                 }
             }
         }
+
+        StpAnalyzer *stpAnalyzer = new StpAnalyzer(5, this);
+        connect(stpAnalyzer, SIGNAL(detected()), SLOT(onSTPdetected()));
+        stpAnalyzer->startListening("eth0");
     }
+#endif
 
 #ifdef Q_OS_WIN
     _taskbarButton = nullptr;
@@ -167,6 +180,9 @@ ImageWriter::ImageWriter(QObject *parent)
         }
     }
     //_currentKeyboard = "us";
+
+    // Centralised network manager, for fetching OS lists
+    connect(&_networkManager, SIGNAL(finished(QNetworkReply *)), this, SLOT(handleNetworkRequestFinished(QNetworkReply *)));
 }
 
 ImageWriter::~ImageWriter()
@@ -414,6 +430,213 @@ bool ImageWriter::isVersionNewer(const QString &version)
 void ImageWriter::setCustomOsListUrl(const QUrl &url)
 {
     _repo = url;
+}
+
+namespace {
+    QJsonArray findAndInsertJsonResult(QJsonArray parent_list, QJsonArray incomingBody, QUrl referenceUrl, uint8_t count = 0) {
+        if (count > MAX_SUBITEMS_DEPTH) {
+            qDebug() << "Aborting insertion of subitems, exceeded maximum configured limit of " << MAX_SUBITEMS_DEPTH << " levels.";
+            return {};
+        }
+
+        QJsonArray returnArray = {};
+
+        for (auto ositem : parent_list) {
+            auto ositemObject = ositem.toObject();
+
+            if (ositemObject.contains("subitems")) {
+                // Recurse!
+                ositemObject["subitems"] = findAndInsertJsonResult(ositemObject["subitems"].toArray(), incomingBody, referenceUrl, count++);
+            } else if (ositemObject.contains("subitems_url")) {
+                if ( !ositemObject["subitems_url"].toString().compare(referenceUrl.toString())) {
+                    ositemObject.insert("subitems", incomingBody);
+                    ositemObject.remove("subitems_url");
+                }
+            }
+
+            returnArray += ositemObject;
+        }
+
+        return returnArray;
+    }
+
+    void findAndQueueUnresolvedSubitemsJson(QJsonArray incoming, QNetworkAccessManager &manager, uint8_t count = 0) {
+        if (count > MAX_SUBITEMS_DEPTH) {
+            qDebug() << "Aborting fetch of subitems JSON, exceeded maximum configured limit of " << MAX_SUBITEMS_DEPTH << " levels.";
+            return;
+        }
+
+        for (auto entry : incoming) {
+            auto entryObject = entry.toObject();
+            if (entryObject.contains("subitems")) {
+                // No need to handle a return - this isn't processing a list, it's searching and queuing downloads.
+                findAndQueueUnresolvedSubitemsJson(entryObject["subitems"].toArray(), manager, count++);
+            } else if (entryObject.contains("subitems_url")) {
+                auto url = entryObject["subitems_url"].toString();
+                auto request = QNetworkRequest(url);
+                request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                        QNetworkRequest::NoLessSafeRedirectPolicy);
+                manager.get(request);
+            }
+        }
+    }
+} // namespace anonymous
+
+
+void ImageWriter::setHWFilterList(const QByteArray &json, const bool &inclusive) {
+    QJsonDocument json_document = QJsonDocument::fromJson(json);
+    _deviceFilter = json_document.array();
+    _deviceFilterIsInclusive = inclusive;
+}
+
+void ImageWriter::handleNetworkRequestFinished(QNetworkReply *data) {
+    // Defer deletion
+    data->deleteLater();
+
+    if (data->error() == QNetworkReply::NoError) {
+        auto httpStatusCode = data->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+        if (httpStatusCode >= 200 && httpStatusCode < 300 || httpStatusCode == 0) {
+            auto response_object = QJsonDocument::fromJson(data->readAll()).object();
+
+            if (response_object.contains("os_list")) {
+                // Step 1: Insert the items into the canonical JSON document.
+                //         It doesn't matter that these may still contain subitems_url items
+                //         As these will be fixed up as the subitems_url instances are blinked in
+                if (_completeOsList.isEmpty()) {
+                    _completeOsList = QJsonDocument(response_object);
+                } else {
+                    auto new_list = findAndInsertJsonResult(_completeOsList["os_list"].toArray(), response_object["os_list"].toArray(), data->request().url());
+                    auto imager_meta = _completeOsList["imager"].toObject();
+                    _completeOsList = QJsonDocument(QJsonObject({
+                        {"imager", imager_meta},
+                        {"os_list", new_list}
+                    }));
+                }
+
+                findAndQueueUnresolvedSubitemsJson(response_object["os_list"].toArray(), _networkManager);
+                emit osListPrepared();
+            } else {
+                qDebug() << "Incorrectly formatted OS list at: " << data->url();
+            }
+        } else if (httpStatusCode >= 300 && httpStatusCode < 400) {
+            // We should _never_ enter this branch. All requests are set to follow redirections
+            // at their call sites - so the only way you got here was a logic defect.
+            auto request = QNetworkRequest(data->url());
+
+            request.setAttribute(QNetworkRequest::RedirectionTargetAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+
+            data->manager()->get(request);
+
+            // maintain manager
+            return;
+        } else if (httpStatusCode >= 400 && httpStatusCode < 600) {
+            // HTTP Error
+            qDebug() << "Failed to fetch URL [" << data->url() << "], got: " << httpStatusCode;
+        } else {
+            // Completely unknown error, worth logging separately
+            qDebug() << "Failed to fetch URL [" << data->url() << "], got unknown response code: " << httpStatusCode;
+        }
+    } else {
+        // QT Error.
+        qDebug() << "Unrecognised QT error: " << data->error() << ", explainer: " << data->errorString();
+    }
+}
+
+namespace {
+    QJsonArray filterOsListWithHWTags(QJsonArray incoming_os_list, QJsonArray hw_filter, const bool inclusive, uint8_t count = 0) {
+        if (count > MAX_SUBITEMS_DEPTH) {
+            qDebug() << "Aborting insertion of subitems, exceeded maximum configured limit of " << MAX_SUBITEMS_DEPTH << " levels.";
+            return {};
+        }
+
+        QJsonArray returnArray = {};
+
+        for (auto ositem : incoming_os_list) {
+            auto ositemObject = ositem.toObject();
+
+            if (ositemObject.contains("subitems")) {
+                // Recurse!
+                ositemObject["subitems"] = filterOsListWithHWTags(ositemObject["subitems"].toArray(), hw_filter, inclusive, count++);
+                if (ositemObject["subitems"].toArray().count() > 0) {
+                    returnArray += ositemObject;
+                }
+            } else {
+                // Filter this one!
+                if (ositemObject.contains("devices")) {
+                    auto keep = false;
+                    auto ositem_devices = ositemObject["devices"].toArray();
+
+                    for (auto compat_device : ositem_devices) {
+                        if (hw_filter.contains(compat_device.toString())) {
+                            keep = true;
+                            break;
+                        }
+                    }
+
+                    if (keep) {
+                        returnArray.append(ositem);
+                    }
+                } else {
+                    // No devices tags, so work out if we're exclusive or inclusive filtering!
+                    if (inclusive) {
+                        returnArray.append(ositem);
+                    }
+                }
+            }
+        }
+
+        return returnArray;
+    }
+} // namespace anonymous
+
+QByteArray ImageWriter::getFilteredOSlist() {
+    QJsonArray reference_os_list_array = {};
+    QJsonObject reference_imager_metadata = {};
+    {
+        if (!_completeOsList.isEmpty()) {
+            if (!_deviceFilter.isEmpty()) {
+                reference_os_list_array = filterOsListWithHWTags(_completeOsList.object()["os_list"].toArray(), _deviceFilter, _deviceFilterIsInclusive);
+            } else {
+                // The device filter can be an empty array when a device filter has not been selected, or has explicitly been selected as
+                // "no filtering". In that case, avoid walking the tree and use the unfiltered list.
+                reference_os_list_array = _completeOsList.object()["os_list"].toArray();
+            }
+
+            reference_imager_metadata = _completeOsList.object()["imager"].toObject();
+        }
+    }
+
+    reference_os_list_array.append(QJsonObject({
+            {"name",  tr("Erase")},
+            {"description", tr("Format card as FAT32")},
+            {"icon", "icons/erase.png"},
+            {"url", "internal://format"},
+        }));
+
+    reference_os_list_array.append(QJsonObject({
+            {"name",  tr("Use custom")},
+            {"description", tr("Select a custom .img from your computer")},
+            {"icon", "icons/use_custom.png"},
+            {"url", ""},
+        }));
+
+    return QJsonDocument(
+        QJsonObject({
+            {"imager", reference_imager_metadata},
+            {"os_list", reference_os_list_array},
+        }
+    )).toJson();
+}
+
+void ImageWriter::beginOSListFetch() {
+    QNetworkRequest request = QNetworkRequest(constantOsListUrl());
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
+    
+    // This will set up a chain of requests that culiminate in the eventual fetch and assembly of
+    // a complete cached OS list.
+   _networkManager.get(request);
 }
 
 void ImageWriter::setCustomCacheFile(const QString &cacheFile, const QByteArray &sha256)
@@ -708,7 +931,7 @@ void ImageWriter::pollNetwork()
         if (!a.isLoopback() && a.scopeId().isEmpty())
         {
             /* Not a loopback or IPv6 link-local address, so online */
-            qDebug() << "IP:" << a;
+            emit networkInfo(QString("IP: %1").arg(a.toString()));
             _online = true;
             break;
         }
@@ -746,11 +969,12 @@ void ImageWriter::onTimeSyncReply(QNetworkReply *reply)
         };
         ::settimeofday(&tv, NULL);
 
+        beginOSListFetch();
         emit networkOnline();
     }
     else
     {
-        qDebug() << "Error synchronizing time. Trying again in 3 seconds";
+        emit networkInfo(tr("Error synchronizing time. Trying again in 3 seconds"));
         QTimer::singleShot(3000, this, SLOT(syncTime()));
     }
 
@@ -758,6 +982,11 @@ void ImageWriter::onTimeSyncReply(QNetworkReply *reply)
 #else
     Q_UNUSED(reply)
 #endif
+}
+
+void ImageWriter::onSTPdetected()
+{
+    emit networkInfo(tr("STP is enabled on your Ethernet switch. Getting IP will take long time."));
 }
 
 bool ImageWriter::isEmbeddedMode()

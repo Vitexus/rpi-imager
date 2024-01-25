@@ -98,6 +98,7 @@ Window {
                                     enabled: chkHostname.checked
                                     text: "raspberrypi"
                                     selectByMouse: true
+                                    maximumLength: 253
                                     validator: RegularExpressionValidator { regularExpression: /[0-9A-Za-z][0-9A-Za-z-]{0,62}/ }
                                 }
                                 Text {
@@ -139,6 +140,7 @@ Window {
                                         Layout.minimumWidth: 200
                                         selectByMouse: true
                                         property bool indicateError: false
+                                        maximumLength: 31
 
                                         onTextEdited: {
                                             indicateError = false
@@ -152,18 +154,26 @@ Window {
                                     TextField {
                                         id: fieldUserPassword
                                         echoMode: TextInput.Password
+                                        passwordMaskDelay: 2000 //ms
                                         Layout.minimumWidth: 200
                                         selectByMouse: true
                                         property bool alreadyCrypted: false
                                         property bool indicateError: false
 
-                                        onTextEdited: {
+                                        Keys.onPressed: (event)=> {
                                             if (alreadyCrypted) {
                                                 /* User is trying to edit saved
                                                    (crypted) password, clear field */
                                                 alreadyCrypted = false
                                                 clear()
                                             }
+
+                                            // Do not mark the event as accepted, so that it may
+                                            // propagate down to the underlying TextField.
+                                            event.accepted = false
+                                        }
+
+                                        onTextEdited: {
                                             if (indicateError) {
                                                 indicateError = false
                                             }
@@ -404,7 +414,12 @@ Window {
 
                     if (chkWifi.checked)
                     {
-                        if (fieldWifiPassword.text.length < 8 || fieldWifiPassword.text.length > 64)
+                        // Valid Wi-Fi PSKs are:
+                        // - 0 characters (indicating an open network)
+                        // - 8-63 characters (passphrase)
+                        // - 64 characters (hashed passphrase, as hex)
+                        if (fieldWifiPassword.text.length > 0 &&
+                            (fieldWifiPassword.text.length < 8 || fieldWifiPassword.text.length > 64))
                         {
                             fieldWifiPassword.indicateError = true
                             fieldWifiPassword.forceActiveFocus()
@@ -712,7 +727,11 @@ Window {
                 wpaconfig += "\tscan_ssid=1\n"
             }
             wpaconfig += "\tssid=\""+fieldWifiSSID.text+"\"\n"
-            var cryptedPsk = fieldWifiPassword.text.length == 64 ? fieldWifiPassword.text : imageWriter.pbkdf2(fieldWifiPassword.text, fieldWifiSSID.text)
+
+            const isPassphrase = fieldWifiPassword.text.length >= 8 &&
+                fieldWifiPassword.text.length < 64
+            var cryptedPsk = isPassphrase ? imageWriter.pbkdf2(fieldWifiPassword.text, fieldWifiSSID.text)
+                                          : fieldWifiPassword.text
             wpaconfig += "\tpsk="+cryptedPsk+"\n"
             wpaconfig += "}\n"
 
@@ -813,8 +832,13 @@ Window {
             if (chkWifiSSIDHidden.checked) {
                 settings.wifiSSIDHidden = true
             }
-            settings.wifiPassword = fieldWifiPassword.text.length == 64 ? fieldWifiPassword.text : imageWriter.pbkdf2(fieldWifiPassword.text, fieldWifiSSID.text)
             settings.wifiCountry = fieldWifiCountry.editText
+
+            const isPassphrase = fieldWifiPassword.text.length >= 8 &&
+                fieldWifiPassword.text.length < 64
+            var cryptedPsk = isPassphrase ? imageWriter.pbkdf2(fieldWifiPassword.text, fieldWifiSSID.text)
+                                          : fieldWifiPassword.text
+            settings.wifiPassword = cryptedPsk
         }
         if (chkLocale.checked) {
             settings.timezone = fieldTimezone.editText
