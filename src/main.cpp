@@ -135,11 +135,13 @@ int main(int argc, char *argv[])
         {
             /* CLI mode */
             Cli cli(argc, argv);
-            return cli.main();
+            return cli.run();
         }
     }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
 
     /** QtQuick on QT5 exhibits spurious disk cache failures that cannot be
      * resolved by a user in a trivial manner (they have to delete the cache manually).
@@ -150,6 +152,16 @@ int main(int argc, char *argv[])
      * of users.
      */
     qputenv("QML_DISABLE_DISK_CACHE", "true");
+
+#if QT_VERSION > QT_VERSION_CHECK(6, 5, 0)
+    // In version 6.5, Qt implemented Google Material Design 3,
+    // which renders fairly radically differently to Material Design 2.
+    // Of particular note is the 'Normal' vs 'Dense' variant choice,
+    // where 'Dense' is recommended for Desktops and environments with pointers.
+    // See https://www.qt.io/blog/material-3-changes-in-qt-quick-controls
+    qputenv("QT_QUICK_CONTROLS_MATERIAL_VARIANT", "Dense");
+#endif
+
 #ifdef Q_OS_WIN
     // prefer ANGLE (DirectX) over desktop OpenGL
     QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
@@ -264,13 +276,13 @@ int main(int argc, char *argv[])
         }
         else if (args[i] == "--help")
         {
-            cerr << args[0] << " [--debug] [--version] [--repo <repository URL>] [--qm <custom qm translation file>] [--disable-telemetry] [<image file to write>]" << endl;
-            cerr << "-OR- " << args[0] << " --cli [--disable-verify] [--sha256 <expected hash>] [--debug] [--quiet] <image file to write> <destination drive device>" << endl;
+            cerr << "rpi-imager [--debug] [--version] [--repo <repository URL>] [--qm <custom qm translation file>] [--disable-telemetry] [<image file to write>]" << endl;
+            cerr << "-OR- rpi-imager --cli [--disable-verify] [--sha256 <expected hash>] [--debug] [--quiet] <image file to write> <destination drive device>" << endl;
             return 0;
         }
         else if (args[i] == "--version")
         {
-            cerr << args[0] << " version " << imageWriter.constantVersion() << endl;
+            cerr << "rpi-imager version " << imageWriter.constantVersion() << endl;
             cerr << "Repository: " << imageWriter.constantOsListUrl().toString() << endl;
             return 0;
         }

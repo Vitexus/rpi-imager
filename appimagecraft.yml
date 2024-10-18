@@ -1,0 +1,24 @@
+version: 1
+
+project:
+  name: org.raspberrypi.rpi-imager
+  version: 1.9.2
+
+build:
+  cmake:
+    source_dir: src/
+    # You should also set your Qt6_ROOT here, like so:
+    # extra_variables:
+    #  - Qt6_ROOT=
+  environment:
+    BUILD_TYPE: MinSizeRel
+
+appimage:
+  linuxdeploy:
+    plugins:
+      - qt
+    raw_environment:
+      QML_SOURCES_PATHS: "\"$PROJECT_ROOT\"/src/qmlcomponents/"
+    environment:
+      EXTRA_PLATFORM_PLUGINS: "libqwayland-egl.so;libqwayland-generic.so"
+      EXTRA_QT_PLUGINS: "waylandcompositor"

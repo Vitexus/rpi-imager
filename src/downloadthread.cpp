@@ -314,7 +314,7 @@ bool DownloadThread::_openAndPrepareDevice()
         if (!_file.seek(knownsize-emptyMB.size())
                 || !_file.write(emptyMB.data(), emptyMB.size())
                 || !_file.flush()
-                || !::fsync(_file.handle()))
+                || ::fsync(_file.handle()))
         {
             emit error(tr("Write error while trying to zero out last part of card.<br>"
                           "Card could be advertising wrong capacity (possible counterfeit)."));
@@ -921,7 +921,7 @@ bool DownloadThread::_customizeImage()
             configItems.removeAll("");
             QByteArray config = fat->readFile("config.txt");
 
-            for (const QByteArray& item : qAsConst(configItems))
+            for (const QByteArray& item : std::as_const(configItems))
             {
                 if (config.contains("#"+item)) {
                     /* Uncomment existing line */
