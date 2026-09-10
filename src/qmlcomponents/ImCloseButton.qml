@@ -5,7 +5,7 @@
  */
 
 import QtQuick 2.9
-import QtQuick.Layouts 1.0
+import QtQuick.Layouts
 
 import RpiImager
 
