@@ -7,7 +7,9 @@
 #define OSLISTMODEL_H
 
 #include <QAbstractItemModel>
+#ifndef CLI_ONLY_BUILD
 #include <QQmlEngine>
+#endif
 
 class ImageWriter;
 
@@ -21,15 +23,19 @@ class ImageWriter;
 class OSListModel : public QAbstractListModel
 {
     Q_OBJECT
+#ifndef CLI_ONLY_BUILD
     QML_ELEMENT
     QML_UNCREATABLE("Created by C++")
+#endif
 public:
 
     enum OSListRole {
         NameRole = Qt::UserRole + 1,
         DescriptionRole,
         DevicesRole,
+        CapabilitiesRole,
         ExtractSha256Role,
+        BmapUrlRole,
         ExtractSizeRole,
         IconRole,
         ImageDownloadSizeRole,
@@ -41,12 +47,14 @@ public:
         TooltipRole,
         WebsiteRole,
         ArchitectureRole,
+        PiConnectRole,
     };
 
     struct OS {
         QString name;
         QString description;
         QStringList devices; // not used by QML but present in JSON
+        QStringList capabilities;
         QString icon;
         QString initFormat;
         QString releaseDate;
@@ -56,20 +64,29 @@ public:
         QString tooltip;
         QString website;
         QString extractSha256;
+        QString bmapUrl;       // Optional bmap file URL for fastboot DONT_CARE optimisation
         QString architecture; // Architecture this OS expects (armel, armhf, armv8)
 
         quint64 imageDownloadSize = 0;
         quint64 extractSize = 0;
 
         bool random = false;
+        bool enableRPiConnect = false;
     };
 
     explicit OSListModel(ImageWriter &);
 
     Q_INVOKABLE bool reload();
+    // Emit dataChanged for all rows without resetting the model
+    Q_INVOKABLE void softRefresh();
 
     // Adds "(Recommended)" to the description of the first OS
     Q_INVOKABLE void markFirstAsRecommended();
+
+signals:
+    void eventOsListParse(quint32 durationMs, bool success);
+
+public slots:
 
 protected:
     int rowCount(const QModelIndex &) const override;

@@ -1,18 +1,106 @@
 #!/usr/bin/make -f
-# See debhelper(7) (uncomment to enable)
-# output every command that modifies files on the build system.
 export DH_VERBOSE = 1
+export SOURCE_DATE_EPOCH := $(shell dpkg-parsechangelog -STimestamp 2>/dev/null)
 
-# Get the list of packages that should be built based on build profiles
 PACKAGES := $(shell dh_listpackages)
+
+VERSION_DIR := $(CURDIR)/debian/tmp/version
+CONFIGURE_VERSIONED := $(CURDIR)/src/cmake/ConfigureVersionedFile.cmake
+GENERATE_VERSION := $(CURDIR)/src/cmake/GenerateVersion.cmake
+STAGE_APPIMAGES := $(CURDIR)/debian/stage-appimages.sh
 
 %:
 	dh $@ --buildsystem=cmake --sourcedirectory=src
 
+.PHONY: clean prune-build-tree
+clean:
+	@$(MAKE) -f debian/rules prune-build-tree
+
+prune-build-tree:
+	rm -rf debian/rpi-imager debian/rpi-imager-cli debian/rpi-imager-embedded \
+		debian/rpi-imager-amd64 debian/.debhelper debian/tmp \
+		debian/com.raspberrypi.rpi-imager.metainfo.xml
+	rm -f debian/files debian/*.substvars debian/*.debhelper.log \
+		debian/debhelper-build-stamp debian/*debhelper*
+	rm -rf build build-* obj-*
+	rm -f rpi-imager-embedded*.deb qt/language_filters.json \
+		src/.qmlls.ini
+	rm -f doc/performance/*.html
+	@parent="$$(cd .. && pwd)"; \
+		rm -rf "$$parent"/$$(basename "$(CURDIR)").orig.*
+
+.PHONY: override_dh_clean
+override_dh_clean:
+	@$(MAKE) -f debian/rules prune-build-tree
+
+# rpi-imager-amd64 is built from source against system libs (see
+# USE_SYSTEM_LIBS in src/CMakeLists.txt) rather than staged from a pre-built
+# AppImage like upstream's rpi-imager/rpi-imager-cli/rpi-imager-embedded
+# packages, so it needs a real cmake configure/build/shlibdeps pass.
 .PHONY: override_dh_auto_configure
 override_dh_auto_configure:
+ifneq (,$(filter rpi-imager-amd64,$(PACKAGES)))
 	dh_auto_configure -- -DUSE_SYSTEM_LIBS=ON
+endif
 
+.PHONY: override_dh_auto_build
+override_dh_auto_build:
+ifneq (,$(filter rpi-imager-amd64,$(PACKAGES)))
+	mkdir -p $(VERSION_DIR)
+	cmake -DSOURCE_DIR=$(CURDIR) -DOUTPUT_DIR=$(VERSION_DIR) \
+		-DGIT_EXECUTABLE=$$(command -v git) \
+		-P $(GENERATE_VERSION)
+	cmake -DVERSION_VARS_FILE=$(VERSION_DIR)/imager_version_vars.cmake \
+		-DINPUT=$(CURDIR)/debian/com.raspberrypi.rpi-imager.metainfo.xml.in \
+		-DOUTPUT=$(CURDIR)/debian/com.raspberrypi.rpi-imager.metainfo.xml \
+		-P $(CONFIGURE_VERSIONED)
+	dh_auto_build
+endif
+ifneq (,$(filter rpi-imager,$(PACKAGES)))
+	mkdir -p $(VERSION_DIR)
+	cmake -DSOURCE_DIR=$(CURDIR) -DOUTPUT_DIR=$(VERSION_DIR) \
+		-DGIT_EXECUTABLE=$$(command -v git) \
+		-P $(GENERATE_VERSION)
+	cmake -DVERSION_VARS_FILE=$(VERSION_DIR)/imager_version_vars.cmake \
+		-DINPUT=$(CURDIR)/debian/com.raspberrypi.rpi-imager.metainfo.xml.in \
+		-DOUTPUT=$(CURDIR)/debian/com.raspberrypi.rpi-imager.metainfo.xml \
+		-P $(CONFIGURE_VERSIONED)
+	$(STAGE_APPIMAGES) desktop
+endif
+ifneq (,$(filter rpi-imager-cli,$(PACKAGES)))
+	$(STAGE_APPIMAGES) cli
+endif
+
+override_dh_auto_install:
+	dh_auto_install
+ifneq (,$(filter rpi-imager-embedded,$(PACKAGES)))
+	mkdir -p debian/rpi-imager-embedded
+	cp -a debroot-embedded-*/opt debian/rpi-imager-embedded/
+	cp -a debroot-embedded-*/usr debian/rpi-imager-embedded/
+endif
+
+# rpi-imager-amd64 is a real ELF binary, so keep the normal dh_strip pass
+# (upstream's --exclude=rpi-imager below is there because rpi-imager/-cli
+# ship self-contained AppImages under that same basename that must stay
+# untouched).
 .PHONY: override_dh_strip
 override_dh_strip:
-	dh_strip --exclude=AppImage --exclude=rpi-imager
+ifneq (,$(filter rpi-imager-amd64,$(PACKAGES)))
+	dh_strip
+else
+	dh_strip --exclude=rpi-imager
+endif
+
+# Desktop/cli packages ship self-contained AppImages; skip shlib scanning
+# (also avoids needing cross-arch objdump when packaging amd64 on arm64).
+# rpi-imager-amd64 and rpi-imager-embedded are real ELF binaries and need it.
+.PHONY: override_dh_makeshlibs override_dh_shlibdeps
+override_dh_makeshlibs:
+ifneq (,$(filter rpi-imager-amd64 rpi-imager-embedded,$(PACKAGES)))
+	dh_makeshlibs
+endif
+
+override_dh_shlibdeps:
+ifneq (,$(filter rpi-imager-amd64 rpi-imager-embedded,$(PACKAGES)))
+	dh_shlibdeps
+endif

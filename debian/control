@@ -2,15 +2,44 @@ Source: rpi-imager
 Section: admin
 Priority: optional
 Maintainer: Tom Dewey <tom.dewey@raspberrypi.com>
-Build-Depends: debhelper (>= 13), cmake, pkg-config, libgnutls28-dev, dh-exec,
+Build-Depends: debhelper-compat (= 13), cmake, pkg-config, libgnutls28-dev, liburing-dev, dh-exec,
                zlib1g-dev, liblzma-dev, libzstd-dev, libarchive-dev, libcurl4-gnutls-dev
 Standards-Version: 4.1.2
 Homepage: https://www.raspberrypi.com/software
 
 Package: rpi-imager
-Build-Profiles: <!amd64 !embedded>
-Architecture: arm64
-Depends: ${shlibs:Depends}, ${misc:Depends}, dosfstools, fdisk, fuse, libfuse2, util-linux (>= 2.37)
+Build-Profiles: <desktop>
+Architecture: amd64 arm64 armhf
+# The bundled AppImage runtime is AppImage/type2-runtime, which links libfuse3
+# and squashfuse statically (static-PIE, no DT_NEEDED at all). All it wants from
+# the system is a fusermount helper on $PATH, and every provider of `fuse`
+# ships /usr/bin/fusermount: fuse 2.9.9 on bookworm, fuse3 (Provides: fuse,
+# Breaks: fuse) on either suite, and trixie's transitional fuse -> fuse3.
+# Do NOT put libfuse2 back. Trixie renamed it libfuse2t64 for the 64-bit time_t
+# transition and, on 32-bit architectures, libfuse2t64 only Replaces libfuse2 --
+# it deliberately does not Provide it, because the ABI genuinely changed. A
+# libfuse2 dependency is therefore unsatisfiable on 32-bit Raspberry Pi OS
+# trixie, which is armhf userland even on a Pi 5 (issue #1651). The 64-bit
+# archs never saw it: there libfuse2t64 does carry Provides: libfuse2.
+# The build chroot is a separate matter and does still need libfuse2 (see
+# debian/chroot-packages): appimagetool is itself a classic AppImage linked
+# against libfuse.so.2, and the chroot is bookworm, where that still exists.
+Depends: ${shlibs:Depends}, ${misc:Depends}, dosfstools, fdisk, fuse,
+         util-linux (>= 2.37), pkexec,
+         libstdc++6, libatomic1,
+         libfontconfig1, libfreetype6,
+# The xcb extension bindings and xcb-util helpers are bundled inside the
+# AppImage (#1719) and are deliberately absent here; see
+# appimage_lib_excluded() in debian/lib.sh for which stay external and why.
+# libxcb-cursor0 in particular is in universe and not installed by default on
+# some Ubuntu derivatives, so depending on it here would not have helped the
+# AppImage users who hit that bug in the first place.
+         libx11-6, libx11-xcb1, libxcb1, libxcb-glx0,
+         libxkbcommon0, libxkbcommon-x11-0,
+         libwayland-client0, libwayland-cursor0,
+         libegl1, libgl1, libopengl0,
+         libdbus-1-3,
+         libdrm2, libgbm1, libinput10, libudev1
 Recommends: udisks2
 Conflicts: rpi-imager-embedded, rpi-imager-amd64
 Description: Raspberry Pi Imaging utility
@@ -19,20 +48,44 @@ Description: Raspberry Pi Imaging utility
 Package: rpi-imager-amd64
 Build-Profiles: <amd64 !embedded>
 Architecture: amd64
-Depends: ${shlibs:Depends}, ${misc:Depends}, dosfstools, fdisk, fuse, libfuse2, util-linux (>= 2.37)
+# Unlike the rpi-imager package above (which stages a pre-built AppImage),
+# this package is compiled from source against Debian's own libraries (see
+# USE_SYSTEM_LIBS in src/CMakeLists.txt and debian/rules), so dh_shlibdeps
+# picks up most direct runtime deps automatically via ${shlibs:Depends}.
+# What it cannot see are the shared libs Qt's platform plugins dlopen at
+# runtime (xcb, wayland, EGL/GL, DBus, fontconfig/freetype), so those are
+# still listed explicitly, mirroring the rpi-imager AppImage's own list above.
+Depends: ${shlibs:Depends}, ${misc:Depends}, dosfstools, fdisk,
+         util-linux (>= 2.37), pkexec,
+         libfontconfig1, libfreetype6,
+         libx11-6, libx11-xcb1, libxcb1, libxcb-glx0,
+         libxkbcommon0, libxkbcommon-x11-0,
+         libwayland-client0, libwayland-cursor0,
+         libegl1, libgl1, libopengl0,
+         libdbus-1-3,
+         libdrm2, libgbm1, libinput10, libudev1
 Recommends: udisks2
-Conflicts: rpi-imager-embedded, rpi-imager
+Conflicts: rpi-imager, rpi-imager-embedded
 Description: Raspberry Pi Imaging utility (x86_64)
  A user-friendly tool for creating bootable media for Raspberry Pi Devices.
  .
- This is the x86_64/amd64 version.
+ This is the x86_64/amd64 version, built from source against system libraries.
 
 Package: rpi-imager-embedded
 Build-Profiles: <embedded>
 Architecture: arm64
-Depends: ${shlibs:Depends}, ${misc:Depends}, 
-         dosfstools, fdisk, fuse, libfuse2, util-linux (>= 2.37), libdrm2,
-         libinput10, libudev1, openssl
+# The package vendors Qt and its support libraries under /opt for the
+# pi-gen-micro netboot image, which carries almost nothing. create-embedded.sh
+# assembles the .deb with dh_gencontrol/dh_md5sums/dh_builddeb and runs no
+# dh_shlibdeps (it would demand the bundled libraries from the target). This
+# list is therefore explicit and minimal -- only what genuinely comes from the
+# host. The embedded Qt is built -no-opengl -no-dbus, so there is deliberately
+# NO libegl1/libgl1/libx11-6 (Mesa/X11 are far too large for the image) and no
+# libsystemd0 (no session bus). Keep it in step with the external sonames from
+# embedded_deploy_lib_closure() (debian/lib.sh).
+Depends: dosfstools, fdisk, util-linux (>= 2.37),
+         libc6, libgcc-s1, libstdc++6,
+         libdrm2, libinput10, libudev1
 Suggests: rpi-eeprom, firmware-brcm80211
 Conflicts: rpi-imager, rpi-imager-amd64
 Description: Raspberry Pi Imaging utility for embedded systems
@@ -40,8 +93,27 @@ Description: Raspberry Pi Imaging utility for embedded systems
  optimized for embedded systems.
  .
  This version is specifically designed for Raspberry Pi embedded systems:
-  - Uses EGLFS for direct rendering (no desktop environment required)
+  - Uses linuxfb for direct rendering (no desktop environment required)
   - Optimized for network-based installation
-  - Includes proper OpenGL ES dependencies for Raspberry Pi
   - Smaller memory footprint for embedded applications
-  - Supports both framebuffer and DRM/KMS rendering
+  - Supports DRM/KMS rendering
+
+Package: rpi-imager-cli
+Build-Profiles: <cli>
+Architecture: amd64 arm64 armhf
+# See the fuse note on the rpi-imager stanza above: the AppImage runtime
+# bundles libfuse3 statically, and libfuse2 must not come back.
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         dosfstools, fdisk, fuse, util-linux (>= 2.37),
+         libstdc++6, libatomic1
+Conflicts: rpi-imager, rpi-imager-embedded
+Description: Raspberry Pi Imaging utility (command-line only)
+ A command-line tool for creating bootable media for Raspberry Pi devices.
+ .
+ This version is optimized for command-line operation:
+  - No GUI components - CLI mode only
+  - Minimal dependencies (Qt Core only)
+  - Perfect for headless servers, automation and Raspberry Pi OS Lite
+  - Smaller package size and memory footprint
+  - Most imaging functionality available via command line
+  - Ideal for scripting and CI/CD pipelines

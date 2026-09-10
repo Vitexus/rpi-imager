@@ -1,5 +1,0 @@
-#!/bin/sh
-
-ln -s /lib/systemd/system/embedded-imager.service /etc/systemd/system/multi-user.target.wants/embedded-imager.service
-
-#DEBHELPER#

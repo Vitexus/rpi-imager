@@ -1,16 +1,18 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 # Parse command line arguments
 ARCH=$(uname -m)  # Default to current architecture
 CLEAN_BUILD=1
 QT_ROOT_ARG=""
+TRY_BUILD_QT=0
 
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
-    echo "  --arch=ARCH        Target architecture (x86_64, aarch64)"
+    echo "  --arch=ARCH        Target architecture (x86_64, aarch64, armhf)"
     echo "  --qt-root=PATH     Path to Qt installation directory"
+    echo "  --try-build-qt     Run debian/ensure-qt.sh if Qt is missing (best-effort)"
     echo "  --no-clean         Don't clean build directory"
     echo "  -h, --help         Show this help message"
     exit 1
@@ -24,8 +26,14 @@ for arg in "$@"; do
         --qt-root=*)
             QT_ROOT_ARG="${arg#*=}"
             ;;
+        --try-build-qt)
+            TRY_BUILD_QT=1
+            ;;
         --no-clean)
             CLEAN_BUILD=0
+            ;;
+        --packaging=*)
+            APPIMAGE_PACKAGING="${arg#*=}"
             ;;
         -h|--help)
             usage
@@ -37,99 +45,110 @@ for arg in "$@"; do
     esac
 done
 
-# Validate architecture
-if [[ "$ARCH" != "x86_64" && "$ARCH" != "aarch64" ]]; then
-    echo "Error: Architecture must be one of: x86_64, aarch64"
+# Resolve Qt root path argument if provided (expand ~ and convert to absolute path)
+if [ -n "$QT_ROOT_ARG" ]; then
+    # Expand tilde if present at the start
+    case "$QT_ROOT_ARG" in
+        "~"/*) QT_ROOT_ARG="$HOME/${QT_ROOT_ARG#\~/}" ;;
+        "~")   QT_ROOT_ARG="$HOME" ;;
+    esac
+    # Convert to absolute path if it exists
+    if [ -e "$QT_ROOT_ARG" ]; then
+        QT_ROOT_ARG=$(cd "$QT_ROOT_ARG" && pwd)
+    else
+        echo "Warning: Specified Qt root path does not exist: $QT_ROOT_ARG"
+        echo "Will attempt to use it anyway, but this may fail..."
+    fi
+fi
+
+# Normalise 32-bit Pi kernel names to Debian armhf.
+case "$ARCH" in
+    armv6l|armv7l) ARCH=armhf ;;
+esac
+if [ "$ARCH" != "x86_64" ] && [ "$ARCH" != "aarch64" ] && [ "$ARCH" != "armhf" ]; then
+    echo "Error: Architecture must be one of: x86_64, aarch64, armhf" >&2
     exit 1
 fi
 
-echo "Building for architecture: $ARCH"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TOP="$SCRIPT_DIR"
+# shellcheck disable=SC1091
+. "$TOP/debian/lib.sh"
+export_cmake_parallel
+sh "$TOP/debian/fetch-vendor-deps.sh"
+# shellcheck source=debian/qt-resolve.sh
+. "$TOP/debian/qt-resolve.sh"
+
+APPIMAGE_PACKAGING=${APPIMAGE_PACKAGING:-all}
+TOOL_ARCH=$(appimage_resolve_tool_arch)
+
+echo "Building for architecture: $ARCH (packaging tools: $TOOL_ARCH, mode: $APPIMAGE_PACKAGING)"
+if [ "$ARCH" != "$TOOL_ARCH" ]; then
+    echo "create-appimage: cross packaging — build target binaries for $ARCH, run linuxdeploy/appimagetool for $TOOL_ARCH on the host"
+fi
 
 # Extract project information from CMakeLists.txt
 SOURCE_DIR="src/"
 CMAKE_FILE="${SOURCE_DIR}CMakeLists.txt"
 
-# Extract version components
-MAJOR=$(grep -E "set\(IMAGER_VERSION_MAJOR [0-9]+" "$CMAKE_FILE" | sed 's/set(IMAGER_VERSION_MAJOR \([0-9]*\).*/\1/')
-MINOR=$(grep -E "set\(IMAGER_VERSION_MINOR [0-9]+" "$CMAKE_FILE" | sed 's/set(IMAGER_VERSION_MINOR \([0-9]*\).*/\1/')
-PATCH=$(grep -E "set\(IMAGER_VERSION_PATCH [0-9]+" "$CMAKE_FILE" | sed 's/set(IMAGER_VERSION_PATCH \([0-9]*\).*/\1/')
-PROJECT_VERSION="$MAJOR.$MINOR.$PATCH"
+# Get version from git tag (same approach as CMake)
+GIT_VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "0.0.0-unknown")
+
+# Extract numeric version components for compatibility
+# Match versions like: v1.2.3, 1.2.3, v1.2.3-extra, etc.
+MAJOR=$(echo "$GIT_VERSION" | sed -n 's/^v\{0,1\}\([0-9]\{1,\}\)\.[0-9]\{1,\}\.[0-9]\{1,\}.*/\1/p')
+MINOR=$(echo "$GIT_VERSION" | sed -n 's/^v\{0,1\}[0-9]\{1,\}\.\([0-9]\{1,\}\)\.[0-9]\{1,\}.*/\1/p')
+PATCH=$(echo "$GIT_VERSION" | sed -n 's/^v\{0,1\}[0-9]\{1,\}\.[0-9]\{1,\}\.\([0-9]\{1,\}\).*/\1/p')
+
+if [ -n "$MAJOR" ] && [ -n "$MINOR" ] && [ -n "$PATCH" ]; then
+    PROJECT_VERSION="$MAJOR.$MINOR.$PATCH"
+else
+    MAJOR="0"
+    MINOR="0"
+    PATCH="0"
+    PROJECT_VERSION="0.0.0"
+    echo "Warning: Could not parse version from git tag: $GIT_VERSION"
+fi
 
 # Extract project name (lowercase for AppImage naming convention)
 PROJECT_NAME=$(grep "project(" "$CMAKE_FILE" | head -1 | sed 's/project(\([^[:space:]]*\).*/\1/' | tr '[:upper:]' '[:lower:]')
 
-echo "Building $PROJECT_NAME version $PROJECT_VERSION"
+echo "Building $PROJECT_NAME version $GIT_VERSION (numeric: $PROJECT_VERSION)"
 
-# Check for Qt installation
-# Priority: 1. Command line argument, 2. Environment variable, 3. Auto-detection
-QT_VERSION=""
+# Resolve Qt (vendored cache, /opt/Qt, or system qmake6).
+# The pack stage only wraps an AppDir built earlier, so it never needs Qt — even
+# when target arch == tool arch (host-arch chroot build packed on the host).
 QT_DIR=""
-
-# Check if Qt root is specified via command line argument (highest priority)
-if [ -n "$QT_ROOT_ARG" ]; then
-    echo "Using Qt from command line argument: $QT_ROOT_ARG"
-    QT_DIR="$QT_ROOT_ARG"
-    # Try to determine the version if possible
-    if [ -f "$QT_DIR/bin/qmake" ]; then
-        QT_VERSION=$("$QT_DIR/bin/qmake" -query QT_VERSION)
-        echo "Qt version: $QT_VERSION"
-    fi
-# Check if Qt6_ROOT is explicitly set in environment
-elif [ -n "$Qt6_ROOT" ]; then
-    echo "Using Qt from Qt6_ROOT environment variable: $Qt6_ROOT"
-    QT_DIR="$Qt6_ROOT"
-    # Try to determine the version if possible
-    if [ -f "$QT_DIR/bin/qmake" ]; then
-        QT_VERSION=$("$QT_DIR/bin/qmake" -query QT_VERSION)
-        echo "Qt version: $QT_VERSION"
-    fi
-# Auto-detect Qt installation in /opt/Qt
-else
-    if [ -d "/opt/Qt" ]; then
-        echo "Checking for Qt installations in /opt/Qt..."
-        # Find the newest Qt6 version installed
-        NEWEST_QT=$(find /opt/Qt -maxdepth 1 -type d -name "6.*" | sort -V | tail -n 1)
-        if [ -n "$NEWEST_QT" ]; then
-            QT_VERSION=$(basename "$NEWEST_QT")
-            
-            # Find appropriate compiler directory for the architecture
-            if [ "$ARCH" = "x86_64" ]; then
-                if [ -d "$NEWEST_QT/gcc_64" ]; then
-                    QT_DIR="$NEWEST_QT/gcc_64"
-                fi
-            elif [ "$ARCH" = "aarch64" ]; then
-                if [ -d "$NEWEST_QT/gcc_arm64" ]; then
-                    QT_DIR="$NEWEST_QT/gcc_arm64"
-                fi
-            fi
-            
-            if [ -n "$QT_DIR" ]; then
-                echo "Found Qt $QT_VERSION for $ARCH at $QT_DIR"
-            else
-                echo "Found Qt $QT_VERSION, but no binary directory for $ARCH"
-                QT_VERSION=""
-            fi
+if [ "$APPIMAGE_PACKAGING" != pack ]; then
+if ! QT_DIR=$(qt_resolve_desktop_dir "$ARCH"); then
+    if [ "$TRY_BUILD_QT" -eq 1 ] && [ -x "$SCRIPT_DIR/debian/ensure-qt.sh" ]; then
+        _deb_arch=$ARCH
+        case "$ARCH" in
+            x86_64) _deb_arch=amd64 ;;
+            aarch64) _deb_arch=arm64 ;;
+        esac
+        echo "create-appimage: attempting Qt build via ensure-qt.sh $_deb_arch..."
+        if "$SCRIPT_DIR/debian/ensure-qt.sh" "$_deb_arch"; then
+            QT_DIR=$(qt_resolve_desktop_dir "$ARCH") || true
         fi
     fi
 fi
 
-# If Qt not found, suggest running build-qt.sh
 if [ -z "$QT_DIR" ]; then
-    echo "Error: No suitable Qt installation found for $ARCH"
-    
-    if [ -f "./build-qt.sh" ]; then
-        echo "You can build Qt using the provided script:"
-        echo "  ./build-qt.sh --version=6.9.0"
-        echo "Or specify the Qt location with:"
-        echo "  $0 --qt-root=/path/to/qt"
-        echo "  export Qt6_ROOT=/path/to/qt"
-    else
-        echo "You can specify the Qt location with:"
-        echo "  $0 --qt-root=/path/to/qt"
-        echo "  export Qt6_ROOT=/path/to/qt"
-    fi
-    
+    echo "Error: No suitable Qt6 installation found for $ARCH" >&2
+    echo "  Vendored: debian/ensure-qt.sh <arch>  or  ./qt/build-qt.sh" >&2
+    echo "  System:   apt install qt6-base-dev qt6-declarative-dev" >&2
+    echo "  Or:       $0 --qt-root=/path/to/qt6  --try-build-qt" >&2
     exit 1
+fi
+
+if [ -f "$QT_DIR/bin/qmake" ]; then
+    QT_VERSION=$("$QT_DIR/bin/qmake" -query QT_VERSION)
+    echo "Using Qt $QT_VERSION from $QT_DIR (source: ${QT_RESOLVE_SOURCE:-unknown})"
+elif _qmake=$(qt6_qmake); then
+    QT_VERSION=$("$_qmake" -query QT_VERSION)
+    echo "Using system Qt $QT_VERSION (prefix $QT_DIR)"
+fi
 fi
 
 # Configuration
@@ -138,7 +157,7 @@ QML_SOURCES_PATH="$PWD/src/qmlcomponents/"
 
 # Location of AppDir and output file
 APPDIR="$PWD/AppDir-$ARCH"
-OUTPUT_FILE="$PWD/Raspberry_Pi_Imager-${PROJECT_VERSION}-${ARCH}.AppImage"
+OUTPUT_FILE="$PWD/Raspberry_Pi_Imager-${GIT_VERSION}-desktop-${ARCH}.AppImage"
 
 # Tools directory for downloaded binaries
 TOOLS_DIR="$PWD/appimage-tools"
@@ -147,39 +166,37 @@ mkdir -p "$TOOLS_DIR"
 # Download linuxdeploy and plugins if they don't exist
 echo "Ensuring linuxdeploy tools are available..."
 
-# Choose the right linuxdeploy tools based on architecture
-if [ "$ARCH" = "x86_64" ]; then
-    LINUXDEPLOY="$TOOLS_DIR/linuxdeploy-x86_64.AppImage"
-    LINUXDEPLOY_QT="$TOOLS_DIR/linuxdeploy-plugin-qt-x86_64.AppImage"
-    
-    if [ ! -f "$LINUXDEPLOY" ]; then
-        echo "Downloading linuxdeploy for x86_64..."
-        curl -L -o "$LINUXDEPLOY" "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
-        chmod +x "$LINUXDEPLOY"
-    fi
-    
-    if [ ! -f "$LINUXDEPLOY_QT" ]; then
-        echo "Downloading linuxdeploy-plugin-qt for x86_64..."
-        curl -L -o "$LINUXDEPLOY_QT" "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
-        chmod +x "$LINUXDEPLOY_QT"
-    fi
-elif [ "$ARCH" = "aarch64" ]; then
-    LINUXDEPLOY="$TOOLS_DIR/linuxdeploy-aarch64.AppImage"
-    LINUXDEPLOY_QT="$TOOLS_DIR/linuxdeploy-plugin-qt-aarch64.AppImage"
-    
-    if [ ! -f "$LINUXDEPLOY" ]; then
-        echo "Downloading linuxdeploy for aarch64..."
-        curl -L -o "$LINUXDEPLOY" "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage"
-        chmod +x "$LINUXDEPLOY"
-    fi
-    
-    if [ ! -f "$LINUXDEPLOY_QT" ]; then
-        echo "Downloading linuxdeploy-plugin-qt for aarch64..."
-        curl -L -o "$LINUXDEPLOY_QT" "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-aarch64.AppImage"
-        chmod +x "$LINUXDEPLOY_QT"
-    fi
+# Pin to specific stable versions
+LINUXDEPLOY_VERSION="1-alpha-20250213-2"
+LINUXDEPLOY_PLUGIN_QT_VERSION="1-alpha-20250213-1"
+
+# Choose packaging tools for the machine running this script (TOOL_ARCH), not the
+# target AppImage CPU architecture (ARCH).
+LINUXDEPLOY=""
+LINUXDEPLOY_QT=""
+APPIMAGETOOL=""
+
+# linuxdeploy has no armhf build; those targets fall back to appimagetool below.
+if [ "$ARCH" = "$TOOL_ARCH" ] && { [ "$TOOL_ARCH" = "x86_64" ] || [ "$TOOL_ARCH" = "aarch64" ]; }; then
+    LINUXDEPLOY="$TOOLS_DIR/linuxdeploy-$TOOL_ARCH.AppImage"
+    LINUXDEPLOY_QT="$TOOLS_DIR/linuxdeploy-plugin-qt-$TOOL_ARCH.AppImage"
+    appimage_download_tool "$LINUXDEPLOY" \
+        "https://github.com/linuxdeploy/linuxdeploy/releases/download/$LINUXDEPLOY_VERSION/linuxdeploy-$TOOL_ARCH.AppImage"
+    appimage_download_tool "$LINUXDEPLOY_QT" \
+        "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/$LINUXDEPLOY_PLUGIN_QT_VERSION/linuxdeploy-plugin-qt-$TOOL_ARCH.AppImage"
 fi
 
+APPIMAGETOOL="$TOOLS_DIR/appimagetool-$TOOL_ARCH.AppImage"
+appimage_download_tool "$APPIMAGETOOL" \
+    "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$TOOL_ARCH.AppImage"
+
+if [ "$APPIMAGE_PACKAGING" = pack ] && [ ! -d "$APPDIR/usr/bin" ]; then
+    echo "Error: AppDir missing for pack stage: $APPDIR" >&2
+    echo "Run the build stage first (APPIMAGE_PACKAGING=build)." >&2
+    exit 1
+fi
+
+if [ "$APPIMAGE_PACKAGING" != pack ]; then
 # Set up build directory
 BUILD_DIR="build-$ARCH"
 
@@ -199,121 +216,266 @@ cd "$BUILD_DIR"
 # Set architecture-specific CMake flags
 CMAKE_EXTRA_FLAGS=""
 if [ "$ARCH" = "aarch64" ] && [ "$(uname -m)" = "x86_64" ]; then
-    # Cross-compiling from x86_64 to aarch64
     echo "Cross-compiling from $(uname -m) to $ARCH"
-    # You may need to adjust these flags depending on your cross-compilation setup
     CMAKE_EXTRA_FLAGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64"
+elif [ "$ARCH" = "armhf" ] && [ "$(uname -m)" = "x86_64" ]; then
+    echo "Cross-compiling from $(uname -m) to $ARCH"
+    CMAKE_EXTRA_FLAGS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm"
 fi
 
 # Add Qt path to CMake flags
 CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DQt6_ROOT=$QT_DIR"
 
 # shellcheck disable=SC2086
-cmake "../$SOURCE_DIR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCMAKE_INSTALL_PREFIX=/usr $CMAKE_EXTRA_FLAGS
-make -j$(nproc)
+cmake -G Ninja "../$SOURCE_DIR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCMAKE_INSTALL_PREFIX=/usr $CMAKE_EXTRA_FLAGS
+cmake --build . --parallel "$(cmake_build_jobs)"
 
 echo "Creating AppDir..."
 # Install to AppDir
-make DESTDIR="$APPDIR" install
+DESTDIR="$APPDIR" cmake --install .
 cd ..
 
 # Copy the desktop file from debian directory
-if [ ! -f "$APPDIR/usr/share/applications/org.raspberrypi.rpi-imager.desktop" ]; then
+if [ ! -f "$APPDIR/usr/share/applications/com.raspberrypi.rpi-imager.desktop" ]; then
     mkdir -p "$APPDIR/usr/share/applications"
-    cp "debian/org.raspberrypi.rpi-imager.desktop" "$APPDIR/usr/share/applications/"
-    # Update the Exec line to match the AppImage requirements
-    sed -i 's|Exec=.*|Exec=rpi-imager|' "$APPDIR/usr/share/applications/org.raspberrypi.rpi-imager.desktop"
+    cp "debian/com.raspberrypi.rpi-imager.desktop" "$APPDIR/usr/share/applications/"
+    # Update the Exec line to match the AppImage requirements (preserve %F for file arguments)
+    sed -i 's|Exec=.*|Exec=rpi-imager %F|' "$APPDIR/usr/share/applications/com.raspberrypi.rpi-imager.desktop"
 fi
 
 # Create the AppRun file if not created by the install process
 if [ ! -f "$APPDIR/AppRun" ]; then
     cat > "$APPDIR/AppRun" << 'EOF'
-#!/bin/bash
+#!/bin/sh
 HERE="$(dirname "$(readlink -f "${0}")")"
 export PATH="${HERE}/usr/bin:${PATH}"
 export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
 export QT_PLUGIN_PATH="${HERE}/usr/plugins"
 export QML_IMPORT_PATH="${HERE}/usr/qml"
 export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms"
+
+# Handle X11 authorization when running as root (via sudo or pkexec)
+# This fixes "Authorization required, but no authorization protocol specified" errors
+if [ "$(id -u)" = "0" ]; then
+    # Determine original user from sudo or pkexec
+    ORIGINAL_USER=""
+    ORIGINAL_UID=""
+    ORIGINAL_HOME=""
+    
+    if [ -n "$SUDO_USER" ]; then
+        ORIGINAL_USER="$SUDO_USER"
+        ORIGINAL_UID="$SUDO_UID"
+        ORIGINAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    elif [ -n "$PKEXEC_UID" ]; then
+        ORIGINAL_UID="$PKEXEC_UID"
+        ORIGINAL_USER=$(getent passwd "$PKEXEC_UID" | cut -d: -f1)
+        ORIGINAL_HOME=$(getent passwd "$PKEXEC_UID" | cut -d: -f6)
+    fi
+    
+    if [ -n "$ORIGINAL_USER" ] && [ -n "$ORIGINAL_HOME" ]; then
+        # Try to grant root access to the X display using xhost
+        # This must be run as the original user who owns the display
+        if command -v xhost >/dev/null 2>&1; then
+            if [ -n "$DISPLAY" ]; then
+                # Run xhost as the original user to grant root access
+                su "$ORIGINAL_USER" -c "xhost +SI:localuser:root" >/dev/null 2>&1 || true
+            fi
+        fi
+        
+        # Set XAUTHORITY to the original user's .Xauthority if not already set
+        if [ -z "$XAUTHORITY" ]; then
+            if [ -f "$ORIGINAL_HOME/.Xauthority" ]; then
+                export XAUTHORITY="$ORIGINAL_HOME/.Xauthority"
+            fi
+        fi
+        
+        # Ensure DISPLAY is set (for pkexec which may not preserve it)
+        if [ -z "$DISPLAY" ]; then
+            # Try common X11 display socket
+            if [ -S "/tmp/.X11-unix/X0" ]; then
+                export DISPLAY=":0"
+            fi
+        fi
+    fi
+fi
+
+# The binary handles privilege elevation internally via pkexec if needed
 exec "${HERE}/usr/bin/rpi-imager" "$@"
 EOF
     chmod +x "$APPDIR/AppRun"
 fi
+fi
 
-# Deploy Qt dependencies
+# Deploy Qt dependencies (build stage, or native all-in-one). The pack stage
+# reuses the AppDir produced by the build stage and only wraps it.
+if [ "$APPIMAGE_PACKAGING" = pack ]; then
+    echo "create-appimage: using AppDir from build stage (pack)"
+else
 echo "Deploying Qt dependencies using $QT_DIR..."
 export QML_SOURCES_PATHS="$QML_SOURCES_PATH"
-# Enable FUSE to run the AppImages without extraction
-export APPIMAGE_EXTRACT_AND_RUN=1
-# Set Qt path for linuxdeploy-plugin-qt
-export QMAKE="$QT_DIR/bin/qmake"
-# Set LD_LIBRARY_PATH to include Qt libraries
 export LD_LIBRARY_PATH="$QT_DIR/lib:$LD_LIBRARY_PATH"
-# Optimize deployment: exclude translations and unnecessary libraries
+
+if [ -n "$LINUXDEPLOY" ] && [ -f "$LINUXDEPLOY" ] && [ "$ARCH" = "$TOOL_ARCH" ] && [ "$APPIMAGE_PACKAGING" = all ]; then
+export APPIMAGE_EXTRACT_AND_RUN=1
+export QMAKE="$QT_DIR/bin/qmake"
 export LINUXDEPLOY_PLUGIN_QT_IGNORE_GLOB="*/translations/*"
-"$LINUXDEPLOY" --appdir="$APPDIR" --plugin=qt --exclude-library="libwayland-*"
+"$LINUXDEPLOY" --appdir="$APPDIR" --plugin=qt --exclude-library="libwayland-*" --exclude-library="libsystemd*" --exclude-library="libdbus-*" --exclude-library="libcap*" --verbosity=0
+else
+    echo "Manual Qt deployment for $ARCH..."
+    mkdir -p "$APPDIR/usr/lib" "$APPDIR/usr/plugins" "$APPDIR/usr/qml"
+    cp -d "$QT_DIR/lib/libQt6"*.so* "$APPDIR/usr/lib/" 2>/dev/null || true
+    cp -d "$QT_DIR/lib/libicu"*.so* "$APPDIR/usr/lib/" 2>/dev/null || true
+    for _plug in platforms imageformats tls iconengines xcbglintegrations; do
+        if [ -d "$QT_DIR/plugins/$_plug" ]; then
+            mkdir -p "$APPDIR/usr/plugins/$_plug"
+            cp -a "$QT_DIR/plugins/$_plug/." "$APPDIR/usr/plugins/$_plug/"
+        fi
+    done
+    # "Qt" carries Qt.labs.* (e.g. Qt.labs.folderlistmodel used by ImFileDialog.qml);
+    # the native linuxdeploy path resolves these from QML imports automatically.
+    for _qml in Qt QtCore QtGui QtQml QtQuick QtQuickControls2 QML; do
+        if [ -d "$QT_DIR/qml/$_qml" ]; then
+            mkdir -p "$APPDIR/usr/qml/$_qml"
+            cp -a "$QT_DIR/qml/$_qml/." "$APPDIR/usr/qml/$_qml/"
+        fi
+    done
+fi
+
+# Qt Wayland plugins, deployed for both paths above: linuxdeploy-plugin-qt does
+# not ship these directories, and the manual list above does not either.
+#
+# libQt6WaylandClient looks for a shell integration under
+# plugins/wayland-shell-integration; without libxdg-shell.so the "wayland" QPA
+# plugin loads, connects to the compositor, then aborts with "Loading shell
+# integration failed." Qt then falls back to "xcb", so every session -- Wayland
+# included -- ends up on XWayland and needs libxcb-cursor. That library is now
+# bundled (see appimage_lib_excluded() in debian/lib.sh, #1719), so the fallback
+# no longer depends on the host shipping it; deploying these plugins is still
+# what keeps a Wayland session off XWayland in the first place.
+#
+# These are Qt's own plugins and belong with the bundled Qt, unlike the wayland
+# *system* libraries: libwayland-client/-cursor stay host-provided via
+# --exclude-library above and libwayland-client0/libwayland-cursor0 in
+# debian/control. libxdg-shell.so links only those two plus libQt6WaylandClient,
+# which is already bundled, so this adds no new host dependency.
+#
+# wayland-graphics-integration-client carries libqt-plugin-wayland-egl.so, which
+# is what gets GPU-accelerated Wayland rather than software shm buffers.
+for _plug in wayland-shell-integration wayland-graphics-integration-client \
+             wayland-decoration-client; do
+    if [ -d "$QT_DIR/plugins/$_plug" ]; then
+        mkdir -p "$APPDIR/usr/plugins/$_plug"
+        cp -a "$QT_DIR/plugins/$_plug/." "$APPDIR/usr/plugins/$_plug/"
+    fi
+done
+fi
 
 # Hook for removing files before AppImage creation
 echo "Pre-packaging hook - opportunity to remove unwanted files"
 
-# Remove unused QML Controls themes (size optimization)
-rm -rf "$APPDIR/usr/qml/QtQuick/Controls/Universal"
-rm -rf "$APPDIR/usr/qml/QtQuick/Controls/Fusion"
-rm -rf "$APPDIR/usr/qml/QtQuick/Controls/Imagine"
-rm -rf "$APPDIR/usr/qml/QtQuick/Controls/FluentWinUI3"
+# Remove host-coupled libraries that linuxdeploy-plugin-qt deploys despite --exclude-library
+# These must come from the host system:
+#   libsystemd: works with lsblk/libmount/DBus (see #1304, #1577)
+#   libdbus-1:  communicates with host session bus, NEEDED libsystemd which we exclude
+#   libcap:     kernel capabilities interface, orphaned transitive dep of libsystemd
+rm -f "$APPDIR/usr/lib/libsystemd"*
+rm -f "$APPDIR/usr/lib/libdbus-1"*
+rm -f "$APPDIR/usr/lib/libcap"*
+rm -rf "$APPDIR/usr/share/doc/libsystemd"*
+rm -rf "$APPDIR/usr/share/doc/libdbus"*
+rm -rf "$APPDIR/usr/share/doc/libcap"*
 
-# Remove QtWidgets if included (we don't use it)
-rm -f "$APPDIR/usr/lib/libQt6Widgets.so"*
-rm -f "$APPDIR/usr/lib/libQt"*"Widgets.so"*
-
-# Remove QML debugging tools (development-only)
-rm -rf "$APPDIR/usr/qml/QtTest"*
-rm -rf "$APPDIR/usr/plugins/qmltooling"
+# Prune the QML tree, style libraries and tooling to what the UI imports.
+# Shared with the embedded packaging path -- see prune_qml_to_imports() in
+# debian/lib.sh for the import list and how to re-derive it.
+prune_qml_to_imports "$APPDIR/usr/qml" "$APPDIR/usr/lib" "$APPDIR/usr/plugins"
 
 # Remove Qt translations (we excluded them but remove any that might have slipped through)
 rm -rf "$APPDIR/usr/translations"
 rm -rf "$APPDIR/usr/share/qt6/translations"
 
 # Remove unnecessary image format plugins (consistency with all platforms)
-# Excludes: TIFF, WebP, GIF (less common formats)
+# Excludes: TIFF, WebP, GIF, JPEG 2000 (less common formats)
 # Keeps: JPEG, PNG, SVG (common formats + icons)
+# libqjp2 additionally pulls in libjasper, which is not in the build chroot.
 rm -f "$APPDIR/usr/plugins/imageformats/libqtiff.so"
 rm -f "$APPDIR/usr/plugins/imageformats/libqwebp.so"
 rm -f "$APPDIR/usr/plugins/imageformats/libqgif.so"
+rm -f "$APPDIR/usr/plugins/imageformats/libqjp2.so"
 
-# Remove unused Qt Quick Controls 2 style libraries (size optimization)
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2Fusion.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2Universal.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2Imagine.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2FluentWinUI3.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2FusionStyleImpl.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2UniversalStyleImpl.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2ImagineStyleImpl.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2FluentWinUI3StyleImpl.so"*
-rm -f "$APPDIR/usr/lib/libQt6QuickControls2WindowsStyleImpl.so"*
+# Bundle the non-host-coupled dependency closure of whatever survived pruning.
+# The manual deployment branch above copies only Qt itself, so without this the
+# AppImage relies on the host for ICU, PCRE2, zstd and friends -- ICU in
+# particular is soname-pinned per Debian release (libicu72 on bookworm), which
+# would tie the package to a single distro version.
+if [ "$APPIMAGE_PACKAGING" != pack ]; then
+    appimage_deploy_lib_closure "$APPDIR" "$QT_DIR/lib" || exit 1
+fi
+
+if [ "$APPIMAGE_PACKAGING" = build ]; then
+    prepare_appdir_for_appimagetool "$APPDIR" com.raspberrypi.rpi-imager
+    echo "create-appimage: build stage complete (AppDir at $APPDIR)"
+    exit 0
+fi
 
 # Create the AppImage
 echo "Creating AppImage..."
-# Remove old AppImage symlink
-rm -f "$PWD/rpi-imager.AppImage"
-# Ensure LD_LIBRARY_PATH is still set for this call too
-"$LINUXDEPLOY" --appdir="$APPDIR" --output=appimage
+rm -f "$PWD/rpi-imager-desktop-$ARCH.AppImage"
+rm -f "$PWD/rpi-imager-$ARCH.AppImage"
 
-# Rename the output file if needed
-for appimage in *.AppImage; do
-    if [ "$PWD/$appimage" != "$OUTPUT_FILE" ]; then
-        mv "$appimage" "$OUTPUT_FILE"
-    fi
-done
+export LD_LIBRARY_PATH="$QT_DIR/lib:$LD_LIBRARY_PATH"
+
+if [ -n "$LINUXDEPLOY" ] && [ -f "$LINUXDEPLOY" ] && [ "$ARCH" = "$TOOL_ARCH" ] && [ "$APPIMAGE_PACKAGING" = all ]; then
+export APPIMAGE_EXTRACT_AND_RUN=1
+"$LINUXDEPLOY" --appdir="$APPDIR" \
+    --desktop-file="$APPDIR/usr/share/applications/com.raspberrypi.rpi-imager.desktop" \
+    --exclude-library="libsystemd*" \
+    --exclude-library="libdbus-*" \
+    --exclude-library="libcap*" \
+    --exclude-library="libwayland-*" \
+    --output=appimage \
+    --verbosity=0
+
+LINUXDEPLOY_OUTPUT="Raspberry_Pi_Imager-${ARCH}.AppImage"
+if [ -f "$LINUXDEPLOY_OUTPUT" ]; then
+    echo "Renaming '$LINUXDEPLOY_OUTPUT' to '$(basename "$OUTPUT_FILE")'"
+    mv "$LINUXDEPLOY_OUTPUT" "$OUTPUT_FILE"
+elif [ -f "$OUTPUT_FILE" ]; then
+    echo "Output file already exists: $OUTPUT_FILE"
+else
+    echo "Warning: Expected linuxdeploy output '$LINUXDEPLOY_OUTPUT' not found"
+    ls -la ./*.AppImage 2>/dev/null || true
+fi
+elif [ -n "${APPIMAGETOOL:-}" ] && [ -f "$APPIMAGETOOL" ]; then
+    appimage_pack_with_tool "$APPIMAGETOOL" "$APPDIR" "$OUTPUT_FILE" \
+        "$ARCH" "$TOOL_ARCH" com.raspberrypi.rpi-imager || exit 1
+else
+    echo "Error: no AppImage tooling available for $ARCH" >&2
+    exit 1
+fi
 
 echo "AppImage created at $OUTPUT_FILE"
 
-# Create a symlink with an architecture-specific name
-SYMLINK_NAME="$PWD/rpi-imager-$ARCH.AppImage"
-if [ -L "$SYMLINK_NAME" ] || [ -f "$SYMLINK_NAME" ]; then
-    rm -f "$SYMLINK_NAME"
+if [ ! -f "$OUTPUT_FILE" ]; then
+    echo "Error: AppImage was not created at $OUTPUT_FILE" >&2
+    exit 1
 fi
-ln -s "$(basename "$OUTPUT_FILE")" "$SYMLINK_NAME"
-echo "Created symlink: $SYMLINK_NAME -> $(basename "$OUTPUT_FILE")"
 
-echo "Build completed successfully for $ARCH architecture." 
+# Create symlinks for debian packaging and user convenience
+# Primary symlink matches debian/rpi-imager.install expectations
+DEBIAN_SYMLINK="$PWD/rpi-imager-$ARCH.AppImage"
+if [ -L "$DEBIAN_SYMLINK" ] || [ -f "$DEBIAN_SYMLINK" ]; then
+    rm -f "$DEBIAN_SYMLINK"
+fi
+ln -s "$(basename "$OUTPUT_FILE")" "$DEBIAN_SYMLINK"
+echo "Created symlink: $DEBIAN_SYMLINK -> $(basename "$OUTPUT_FILE")"
+
+# Additional descriptive symlink for clarity when multiple variants exist
+DESCRIPTIVE_SYMLINK="$PWD/rpi-imager-desktop-$ARCH.AppImage"
+if [ -L "$DESCRIPTIVE_SYMLINK" ] || [ -f "$DESCRIPTIVE_SYMLINK" ]; then
+    rm -f "$DESCRIPTIVE_SYMLINK"
+fi
+ln -s "$(basename "$OUTPUT_FILE")" "$DESCRIPTIVE_SYMLINK"
+echo "Created symlink: $DESCRIPTIVE_SYMLINK -> $(basename "$OUTPUT_FILE")"
+
+echo "Build completed successfully for $ARCH architecture."

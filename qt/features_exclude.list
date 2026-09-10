@@ -1,0 +1,61 @@
+androiddeployqt
+appstore-compliant
+assistant
+calendarwidget
+completer
+concatenatetablesproxymodel
+designer
+dial
+distancefieldgenerator
+emojisegmenter
+gestures
+graphicsframecapture
+gif
+gssapi
+hijricalendar
+identityproxymodel
+islamiccivilcalendar
+jalalicalendar
+keysequenceedit
+lcdnumber
+localserver
+macdeployqt
+movie
+pdf
+pixeltool
+poll-exit-on-error
+printsupport
+qdoc
+qev
+qtattributionsscanner
+qtplugininfo
+rubberband
+sanitize_fuzzer_no_link
+sizegrip
+socks5
+sql
+systemtrayicon
+tabletevent
+testlib
+textmarkdownreader
+textmarkdownwriter
+textodfwriter
+topleveldomain
+tuiotouch
+undocommand
+undogroup
+undostack
+undoview
+wasm-exceptions
+wasm-jspi
+wasm-simd128
+wayland-server
+windeployqt
+
+# ICU: Qt only uses it for extended QStringConverter codecs, QCollator
+# collation and localised timezone display names. rpi-imager uses none of
+# these (UTF-8 only, no collation, timezones handled as IANA ID strings), and
+# Qt has non-ICU fallbacks for all three. Excluding it drops ~35 MB of
+# libicudata/libicui18n/libicuuc per package and removes the per-release
+# soname pin (libicu72 on bookworm, libicu76 on trixie).
+icu

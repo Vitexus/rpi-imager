@@ -115,6 +115,42 @@
         <source>All Files (*)</source>
         <translation>Gach Comhad (*)</translation>
     </message>
+    <message>
+        <source>Audio notification unavailable - no viable audio player found on this system</source>
+        <translation>Fógra fuaime ar fáil - ní bhfuarthas aon seinnteoir fuaime inúsáidte ar an gcóras seo</translation>
+    </message>
+    <message>
+        <source>Saved Customisation</source>
+        <translation>Saincheapadh Sábháilte</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Glan</translation>
+    </message>
+    <message>
+        <source>Remove all saved OS customisation settings such as hostname, WiFi, and user credentials</source>
+        <translation>Bain gach socrú saincheaptha OS sábháilte amhail ainm óstach, Wi-Fi, agus dintiúir úsáideora</translation>
+    </message>
+    <message>
+        <source>Version: %1</source>
+        <translation>Leagan: %1</translation>
+    </message>
+    <message>
+        <source>Clear saved customisation?</source>
+        <translation>Glan an saincheapadh sábháilte?</translation>
+    </message>
+    <message>
+        <source>This will remove all saved OS customisation settings such as hostname, WiFi, and user credentials.</source>
+        <translation>Bainfidh sé seo gach socrú saincheaptha OS atá sábháilte amhail ainm óstach, Wi-Fi, agus dintiúir úsáideora.</translation>
+    </message>
+    <message>
+        <source>Keep saved customisation settings and return to the options dialog</source>
+        <translation>Coinnigh na socruithe saincheaptha sábháilte agus fill ar an dialóg roghanna</translation>
+    </message>
+    <message>
+        <source>Remove all saved OS customisation settings permanently</source>
+        <translation>Bain gach socrú saincheaptha OS sábháilte go buan</translation>
+    </message>
 </context>
 <context>
     <name>AsyncCacheWriter</name>
@@ -144,10 +180,6 @@
     <message>
         <source>Image files (%1)</source>
         <translation>Comhaid íomhá (%1)</translation>
-    </message>
-    <message>
-        <source>Imager Repository Files (*.json)</source>
-        <translation>Imager Repository Files (*.json)</translation>
     </message>
     <message>
         <source>Public Key files (*.pub)</source>
@@ -257,6 +289,69 @@
         <source>Authorized keys files (authorized_keys)</source>
         <translation>Comhaid eochracha údaraithe (authorized_keys)</translation>
     </message>
+    <message>
+        <source>Imager Repository Files (*.json *.%1)</source>
+        <translation>Comhaid Stórála Íomháitheora (*.json *.%1)</translation>
+    </message>
+</context>
+<context>
+    <name>ConfirmOtpProgramDialog</name>
+    <message>
+        <source>WARNING: OTP Programming is PERMANENT and IRREVERSIBLE</source>
+        <translation>RABHADH: Tá clársceidealú OTP BUAN agus NÍ FÉIDIR AISGHEARRADH</translation>
+    </message>
+    <message>
+        <source>This operation will permanently program the secure boot public key hash into the device's one-time programmable (OTP) memory. Once programmed, this device will ONLY boot images signed with the corresponding private key. This action cannot be undone.</source>
+        <translation>Déanfaidh an oibríocht seo an hais eochrach phoiblí tosaithe slán a chlárú go buan i gcuimhne in-ríomhchláraithe aonuaire (OTP) an ghléis. Nuair a bheidh sé cláraithe, ní dhéanfaidh an gléas seo ach íomhánna a thosú atá sínithe leis an eochair phríobháideach chomhfhreagrach. Ní féidir an gníomh seo a chealú.</translation>
+    </message>
+    <message>
+        <source>Device: %1</source>
+        <translation>Gléas: %1</translation>
+    </message>
+    <message>
+        <source>Serial: %1</source>
+        <translation>Sraitheach: %1</translation>
+    </message>
+    <message>
+        <source>Key fingerprint: %1</source>
+        <translation>Méarlorg eochrach: %1</translation>
+    </message>
+    <message>
+        <source>Also lock JTAG debug port (additional irreversible action)</source>
+        <translation>Glasáil port dífhabhtaithe JTAG freisin (gníomh breise neamh-inchúlghairthe)</translation>
+    </message>
+    <message>
+        <source>To confirm, type the device serial number below:</source>
+        <translation>Chun a dheimhniú, clóscríobh uimhir sraitheach an ghléis thíos:</translation>
+    </message>
+    <message>
+        <source>Serial to type: %1</source>
+        <translation>Sraitheach le clóscríobh: %1</translation>
+    </message>
+    <message>
+        <source>Type device serial number exactly</source>
+        <translation>Clóscríobh uimhir sraitheach an ghléis go díreach</translation>
+    </message>
+    <message>
+        <source>Confirmation input. Type exactly: %1</source>
+        <translation>Ionchur deimhnithe. Clóscríobh go díreach: %1</translation>
+    </message>
+    <message>
+        <source>CANCEL</source>
+        <translation>CEALAIGH</translation>
+    </message>
+    <message>
+        <source>Cancel OTP programming and return to previous screen</source>
+        <translation>Cealaigh cláreoireacht OTP agus fill ar an scáileán roimhe seo</translation>
+    </message>
+    <message>
+        <source>PROGRAM OTP</source>
+        <translation>OTP CLÁIR</translation>
+    </message>
+    <message>
+        <source>Permanently program the secure boot key into device OTP memory</source>
+        <translation>Cláraigh an eochair tosaithe slán go buan i gcuimhne OTP an ghléis</translation>
+    </message>
 </context>
 <context>
     <name>ConfirmSystemDriveDialog</name>
@@ -333,6 +428,161 @@
     </message>
 </context>
 <context>
+    <name>DebugOptionsDialog</name>
+    <message>
+        <source>Debug Options</source>
+        <translation>Roghanna Dífhabhtaithe</translation>
+    </message>
+    <message>
+        <source>⚠️ These options are for debugging and testing. Changing them may affect performance and data integrity.</source>
+        <translation>⚠️ Is le haghaidh dífhabhtaithe agus tástála atá na roghanna seo. D’fhéadfadh tionchar a bheith ag athrú a n-athruithe ar fheidhmíocht agus ar shláine sonraí.</translation>
+    </message>
+    <message>
+        <source>I/O Options</source>
+        <translation>Roghanna I/O</translation>
+    </message>
+    <message>
+        <source>Enable Direct I/O (F_NOCACHE / O_DIRECT)</source>
+        <translation>Cumasaigh I/O Díreach (F_NOCACHE / O_DIRECT)</translation>
+    </message>
+    <message>
+        <source>Bypass the operating system page cache for writes. Slower but ensures data goes directly to device.</source>
+        <translation>Seachain taisce leathanaigh an chórais oibriúcháin le haghaidh scríobh. Níos moille ach cinntíonn sé go dtéann sonraí go díreach chuig an bhfeiste.</translation>
+    </message>
+    <message>
+        <source>Enable Async I/O</source>
+        <translation>Cumasaigh I/O Asyncrónach</translation>
+    </message>
+    <message>
+        <source>Queue multiple writes to overlap device latency. Improves performance with Direct I/O enabled.</source>
+        <translation>Cuir il-scríbhneoireacht i scuaine chun moill ghléis a fhorluí. Feabhsaíonn sé feidhmíocht le hIonchur/Amach Díreach cumasaithe.</translation>
+    </message>
+    <message>
+        <source>Queue Depth:</source>
+        <translation>Doimhneacht na Scuaine:</translation>
+    </message>
+    <message>
+        <source>Async queue depth: %1</source>
+        <translation>Doimhneacht scuaine neamhshioncrónach: %1</translation>
+    </message>
+    <message>
+        <source>Buffer memory: ~%1-%2 MB (varies by system RAM)</source>
+        <translation>Cuimhne maolánach: ~%1-%2 MB (athraíonn sé ag brath ar RAM an chórais)</translation>
+    </message>
+    <message>
+        <source>Enable Periodic Sync</source>
+        <translation>Cumasaigh Sioncrónú Tréimhsiúil</translation>
+    </message>
+    <message>
+        <source>Periodically flush data to disk during writes. Automatically disabled when Direct I/O is active.</source>
+        <translation>Glan sonraí go tréimhsiúil chuig an diosca le linn scríobh. Díchumasaítear go huathoibríoch é nuair a bhíonn I/O Díreach gníomhach.</translation>
+    </message>
+    <message>
+        <source>Debugging</source>
+        <translation>Dífhabhtú</translation>
+    </message>
+    <message>
+        <source>Verbose Performance Logging</source>
+        <translation>Logáil Feidhmíochta Fadtéarmach</translation>
+    </message>
+    <message>
+        <source>Log detailed timing information for each write operation to help diagnose performance issues.</source>
+        <translation>Logáil faisnéis mhionsonraithe uainiúcháin do gach oibríocht scríbhneoireachta chun cabhrú le fadhbanna feidhmíochta a dhiagnóisiú.</translation>
+    </message>
+    <message>
+        <source>Network Options</source>
+        <translation>Roghanna Líonra</translation>
+    </message>
+    <message>
+        <source>Force IPv4-only Downloads</source>
+        <translation>Íoslódálacha IPv4 amháin a fhorchur</translation>
+    </message>
+    <message>
+        <source>Only use IPv4 for downloads. Enable this if you experience connection issues due to broken IPv6 routing.</source>
+        <translation>Ná húsáid IPv4 ach le haghaidh íoslódálacha. Cumasaigh é seo má bhíonn fadhbanna nasc agat mar gheall ar ródaíocht IPv6 briste.</translation>
+    </message>
+    <message>
+        <source>Workarounds</source>
+        <translation>Réiteach Seachain</translation>
+    </message>
+    <message>
+        <source>Counterfeit Card Mode (skip end-of-device checks)</source>
+        <translation>Mód Cárta Bréige (seiceálacha deireadh gléis a scipeáil)</translation>
+    </message>
+    <message>
+        <source>Skip operations at the end of the storage device. Enable this for counterfeit SD cards that report a fake larger capacity. The image must be smaller than the card's real capacity.</source>
+        <translation>Seachain oibríochtaí ag deireadh an fheiste stórála. Cumasaigh é seo le haghaidh cártaí SD góchumtha a thuairiscíonn acmhainn níos mó bréige. Ní mór don íomhá a bheith níos lú ná fíoracmhainn an chárta.</translation>
+    </message>
+    <message>
+        <source>⚠️ Only enable this if your SD card reports a larger capacity than it actually has. Make sure your image is smaller than the card's real capacity!</source>
+        <translation>⚠️ Ná cumasaigh é seo ach amháin má thuairiscíonn do chárta SD acmhainn níos mó ná mar atá aige i ndáiríre. Déan cinnte go bhfuil d'íomhá níos lú ná fíoracmhainn an chárta!</translation>
+    </message>
+    <message>
+        <source>Advanced Features</source>
+        <translation>Gnéithe Ardleibhéil</translation>
+    </message>
+    <message>
+        <source>Enable Rpiboot/Fastboot Support</source>
+        <translation>Cumasaigh Tacaíocht Rpiboot/Fastboot</translation>
+    </message>
+    <message>
+        <source>Scan for Raspberry Pi devices in USB boot mode (rpiboot). Requires libusb.</source>
+        <translation>Scanadh le haghaidh gléasanna Raspberry Pi i mód tosaithe USB (rpiboot). Éilíonn libusb.</translation>
+    </message>
+    <message>
+        <source>Custom Fastboot Gadget:</source>
+        <translation>Gléas Fastboot Saincheaptha:</translation>
+    </message>
+    <message>
+        <source>(default)</source>
+        <translation>(réamhshocraithe)</translation>
+    </message>
+    <message>
+        <source>Browse...</source>
+        <translation>Brabhsáil...</translation>
+    </message>
+    <message>
+        <source>Select a local fastboot gadget boot.img file</source>
+        <translation>Roghnaigh comhad boot.img de ghléas fastboot áitiúil</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Clear</translation>
+    </message>
+    <message>
+        <source>Revert to the default fastboot gadget from GitHub</source>
+        <translation>Fill ar ais chuig an ngléas tosaithe tapa réamhshocraithe ó GitHub</translation>
+    </message>
+    <message>
+        <source>Select Fastboot Gadget Image</source>
+        <translation>Roghnaigh Íomhá Gléas Fastboot</translation>
+    </message>
+    <message>
+        <source>Boot images (*.img *.bin)</source>
+        <translation>Íomhánna tosaithe (*.img *.bin)</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>Gach comhad (*)</translation>
+    </message>
+    <message>
+        <source>Current Status</source>
+        <translation>Stádas Reatha</translation>
+    </message>
+    <message>
+        <source>Close the debug options dialog without saving any changes</source>
+        <translation>Dún an dialóg roghanna dífhabhtaithe gan aon athruithe a shábháil</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Cuir isteach</translation>
+    </message>
+    <message>
+        <source>Apply the selected debug options</source>
+        <translation>Cuir na roghanna dífhabhtaithe roghnaithe i bhfeidhm</translation>
+    </message>
+</context>
+<context>
     <name>DeviceSelectionStep</name>
     <message>
         <source>Select your Raspberry Pi device</source>
@@ -357,6 +607,30 @@
     <message>
         <source>Use arrow keys to navigate, Enter or Space to select</source>
         <translation>Úsáid na heochracha saigheada chun nascleanúint a dhéanamh, Iontráil nó Spás chun roghnú</translation>
+    </message>
+    <message>
+        <source>Unable to load device list</source>
+        <translation>Ní féidir liosta na ngléasanna a lódáil</translation>
+    </message>
+    <message>
+        <source>The device list could not be downloaded. Please check your internet connection and try again.
+
+You can still write a local image file by pressing Next and selecting 'Use custom' on the following screen.</source>
+        <translation>Níorbh fhéidir an liosta gléasanna a íoslódáil. Seiceáil do nasc idirlín agus déan iarracht eile.
+
+Is féidir leat comhad íomhá áitiúil a scríobh fós trí bhrú ar Ar Aghaidh agus 'Úsáid saincheaptha' a roghnú ar an scáileán seo a leanas.</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Déan iarracht arís</translation>
+    </message>
+    <message>
+        <source>Retry downloading the device list</source>
+        <translation>Déan iarracht an liosta gléasanna a íoslódáil arís</translation>
+    </message>
+    <message>
+        <source>Connected via USB</source>
+        <translation>Ceangailte trí USB</translation>
     </message>
 </context>
 <context>
@@ -437,12 +711,44 @@
         <translation>Earráid ag athrú go dtí an eolaire '%1'</translation>
     </message>
     <message>
-        <source>Error reading from storage.&lt;br&gt;SD card may be broken.</source>
-        <translation>Earráid ag léamh ón stóras.&lt;br&gt;B’fhéidir go bhfuil an cárta SD briste.</translation>
+        <source>The write operation has stalled.
+
+No data has been written for 30 seconds. This could be caused by:
+• Storage device disconnected or unresponsive
+• Device has failed or is faulty
+• System resource exhaustion
+
+Please check the storage device and try again.</source>
+        <translation>Tá an oibríocht scríbhneoireachta stoptha.
+
+Níor scríobhadh aon sonraí ar feadh 30 soicind. D’fhéadfadh na cúiseanna seo a leanas a bheith leis seo:
+• Gléas stórála dícheangailte nó neamhfhreagrach
+• Theip ar an ngléas nó tá locht air
+• Ídiú acmhainní an chórais
+
+Seiceáil an gléas stórála agus déan iarracht arís.</translation>
     </message>
     <message>
-        <source>Verifying write failed. Contents of SD card is different from what was written to it.</source>
-        <translation>Theip ar fhíorú an scríbhneoireachta. Tá ábhar an chárta SD difriúil ón méid a scríobhadh air.</translation>
+        <source>Failed to acquire write buffer slot</source>
+        <translation>Theip ar shliotán maoláin scríbhneoireachta a fháil</translation>
+    </message>
+    <message>
+        <source>The download has stalled.
+
+No data received for 30 seconds. This could be caused by:
+• Network connection lost or unstable
+• Remote server became unresponsive
+• Firewall or proxy blocking the connection
+
+Please check your network connection and try again.</source>
+        <translation>Tá an íoslódáil stoptha.
+
+Níor glacadh le haon sonraí ar feadh 30 soicind. D’fhéadfadh na cúiseanna seo a leanas a bheith leis seo:
+• Nasc líonra caillte nó éagobhsaí
+• Freastalaí cianda ag dul as a riocht
+• Balla dóiteáin nó seachfhreastalaí ag blocáil an naisc
+
+Seiceáil do nasc líonra agus déan iarracht arís.</translation>
     </message>
 </context>
 <context>
@@ -456,32 +762,12 @@
         <translation>Ní féidir gléas stórála '%1' a oscailt.</translation>
     </message>
     <message>
-        <source>Write error while zero'ing out MBR</source>
-        <translation>Earráid scríbhneoireachta agus MBR á nialáil</translation>
-    </message>
-    <message>
-        <source>Write error while trying to zero out last part of card.&lt;br&gt;Card could be advertising wrong capacity (possible counterfeit).</source>
-        <translation>Earráid scríbhneoireachta agus iarracht á déanamh an chuid dheireanach den chárta a bhaint amach.&lt;br&gt;D’fhéadfadh an cárta a bheith ag fógairt acmhainn mhícheart (góchumtha b’fhéidir).</translation>
-    </message>
-    <message>
         <source>Error downloading: %1</source>
         <translation>Earráid ag íoslódáil: %1</translation>
     </message>
     <message>
         <source>Access denied error while writing file to disk.</source>
         <translation>Earráid rochtana diúltaithe agus comhad á scríobh chuig diosca.</translation>
-    </message>
-    <message>
-        <source>Error writing to storage (while flushing)</source>
-        <translation>Earráid ag scríobh chuig an stóras (agus é ag sruthlú)</translation>
-    </message>
-    <message>
-        <source>Error writing to storage (while fsync)</source>
-        <translation>Earráid ag scríobh chuig stóras (le linn fsync)</translation>
-    </message>
-    <message>
-        <source>Error writing first block (partition table)</source>
-        <translation>Earráid ag scríobh an chéad bhloc (tábla deighilte)</translation>
     </message>
     <message>
         <source>Error reading from storage.&lt;br&gt;SD card may be broken.</source>
@@ -540,10 +826,6 @@
         <translation>Earráid ag oscailt gléas diosca '%1'</translation>
     </message>
     <message>
-        <source>Error getting device size</source>
-        <translation>Earráid ag fáil méid an ghléis</translation>
-    </message>
-    <message>
         <source>Error writing to storage device. Please check if the device is writable, has sufficient space, and is not write-protected.</source>
         <translation>Earráid ag scríobh chuig gléas stórála. Seiceáil le do thoil an bhfuil an gléas inscríofa, an bhfuil dóthain spáis ann, agus nach bhfuil sé cosanta ó scríobh.</translation>
     </message>
@@ -554,10 +836,6 @@
     <message>
         <source>Opening drive...</source>
         <translation>Tiomántán á oscailt...</translation>
-    </message>
-    <message>
-        <source>Discarding existing data on drive...</source>
-        <translation>Ag fáil réidh le sonraí atá ar an tiomántán atá ann cheana féin...</translation>
     </message>
     <message>
         <source>Zero'ing out first and last MB of drive...</source>
@@ -668,8 +946,224 @@
         <translation>Comhaid saincheaptha á scríobh...</translation>
     </message>
     <message>
-        <source>Failed to allocate buffer for MBR zeroing</source>
-        <translation>Theip ar mhaolán a leithdháileadh le haghaidh nialúcháin MBR</translation>
+        <source>Failed to unmount disk '%1'. Please close any applications using the disk and try again.</source>
+        <translation>Theip ar dhíshuiteáil diosca '%1'. Dún aon fheidhmchláir a úsáideann an diosca agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>Failed to unmount disk '%1'.</source>
+        <translation>Theip ar dhíshuiteáil diosca '%1'.</translation>
+    </message>
+    <message>
+        <source>getting device size</source>
+        <translation>ag fáil méid na gléis</translation>
+    </message>
+    <message>
+        <source>Failed to allocate buffer for MBR zeroing.
+
+The system may be low on memory.</source>
+        <translation>Theip ar mhaolán a leithdháileadh le haghaidh nialúcháin MBR.
+
+B’fhéidir go bhfuil easpa cuimhne sa chóras.</translation>
+    </message>
+    <message>
+        <source>preparing storage device</source>
+        <translation>gléas stórála á ullmhú</translation>
+    </message>
+    <message>
+        <source>Zero'ing out end of drive...</source>
+        <translation>Ag nialas amach deireadh an tiomána...</translation>
+    </message>
+    <message>
+        <source>Timeout writing to end of storage device.
+
+This may indicate a counterfeit SD card with fake capacity.
+
+Please try a different storage device.</source>
+        <translation>Am críochnaithe ag scríobh go dtí deireadh an fheiste stórála.
+
+D’fhéadfadh sé seo a léiriú gur cárta SD góchumtha le hacmhainn bhréige atá ann.
+
+Bain triail as feiste stórála eile.</translation>
+    </message>
+    <message>
+        <source>Write error while trying to zero out last part of card.
+
+This could indicate the card is advertising wrong capacity (possible counterfeit).
+
+Please try a different storage device.</source>
+        <translation>Earráid scríbhneoireachta agus iarracht á déanamh an chuid dheireanach den chárta a bhaint amach.
+
+D’fhéadfadh sé seo a léiriú go bhfuil an cárta ag fógairt acmhainn mhícheart (góchumtha b’fhéidir).
+
+Bain triail as gléas stórála difriúil.</translation>
+    </message>
+    <message>
+        <source>Storage device responding slowly. Restarting in compatibility mode...</source>
+        <translation>Gléas stórála ag freagairt go mall. Ag atosú i mód comhoiriúnachta...</translation>
+    </message>
+    <message>
+        <source>storage operation</source>
+        <translation>oibríocht stórála</translation>
+    </message>
+    <message>
+        <source>Failed to open storage device.
+
+The device may be in use by another application, or you may not have permission to access it.</source>
+        <translation>Theip ar oscailt an fheiste stórála.
+
+B’fhéidir go bhfuil an fheiste in úsáid ag feidhmchlár eile, nó b’fhéidir nach bhfuil cead agat rochtain a fháil uirthi.</translation>
+    </message>
+    <message>
+        <source>Error writing to storage device during %1.
+
+This could be caused by:
+• Device disconnected or became unresponsive
+• Device is full or write-protected
+• Hardware failure or bad sectors
+
+Please check the device and try again.</source>
+        <translation>Earráid ag scríobh chuig gléas stórála le linn %1.
+
+D’fhéadfadh sé seo a bheith mar thoradh ar:
+• An gléas dícheangailte nó gan freagra
+• An gléas lán nó cosanta ag scríobh
+• Teip crua-earraí nó earnálacha lochtacha
+
+Seiceáil an gléas agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>Error reading from storage device during %1.
+
+The device may have been disconnected or is malfunctioning.</source>
+        <translation>Earráid ag léamh ón ngléas stórála le linn %1.
+
+B’fhéidir gur dícheangail an gléas nó go bhfuil sé ag mífheidhmiú.</translation>
+    </message>
+    <message>
+        <source>Error seeking on storage device during %1.
+
+The device may be malfunctioning or disconnected.</source>
+        <translation>Earráid ag cuardach ar ghléas stórála le linn %1.
+
+B’fhéidir go bhfuil an gléas mífheidhmiúil nó dícheangailte.</translation>
+    </message>
+    <message>
+        <source>Error getting storage device size.
+
+The device may not be properly recognized.</source>
+        <translation>Earráid ag fáil méid an ghléis stórála.
+
+B’fhéidir nach n-aithnítear an gléas i gceart.</translation>
+    </message>
+    <message>
+        <source>Error closing storage device.
+
+The device may have been disconnected.</source>
+        <translation>Earráid ag dúnadh an fheiste stórála.
+
+B’fhéidir gur dícheangail an fheiste.</translation>
+    </message>
+    <message>
+        <source>Failed to lock storage device.
+
+The device may be in use by another application. Please close any applications using this device and try again.</source>
+        <translation>Theip ar an ngléas stórála a ghlasáil.
+
+B’fhéidir go bhfuil an gléas in úsáid ag feidhmchlár eile. Dún aon fheidhmchláir atá ag úsáid an ghléis seo agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>Error syncing data to storage device.
+
+The device may have been disconnected or is not responding. Data may not have been fully written.</source>
+        <translation>Earráid ag sioncrónú sonraí leis an ngléas stórála.
+
+B’fhéidir gur dícheangail an gléas nó nach bhfuil sé ag freagairt. B’fhéidir nach bhfuil na sonraí scríofa go hiomlán.</translation>
+    </message>
+    <message>
+        <source>Error flushing data to storage device.
+
+The device may have been disconnected or is not responding.</source>
+        <translation>Earráid ag glanadh sonraí chuig an ngléas stórála.
+
+B’fhéidir gur dícheangail an gléas nó nach bhfuil sé ag freagairt.</translation>
+    </message>
+    <message>
+        <source>Storage device timed out during %1.
+
+The device is not responding. This may indicate:
+• Device was disconnected
+• Device has failed
+• Driver or system issue
+
+Please disconnect and reconnect the device, then try again.</source>
+        <translation>Chuaigh an gléas stórála isteach san am le linn %1.
+
+Níl an gléas ag freagairt. D’fhéadfadh sé seo a léiriú:
+• Dícheangail an gléas
+• Theip ar an ngléas
+• Fadhb le tiománaí nó córas
+
+Dícheangail agus athcheangail an gléas, agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>Unknown storage error during %1.
+
+Please try again or use a different storage device.</source>
+        <translation>Earráid stórála anaithnid le linn %1.
+
+Déan iarracht arís nó bain úsáid as gléas stórála difriúil.</translation>
+    </message>
+    <message>
+        <source>The storage device is not responding. This may indicate:
+• The device was disconnected
+• The device has failed
+• A driver or system issue
+
+Please disconnect and reconnect the device, then try again.</source>
+        <translation>Níl an gléas stórála ag freagairt. D’fhéadfadh sé seo a léiriú:
+• Dícheangail an gléas
+• Theip ar an ngléas
+• Fadhb tiománaí nó córais
+
+Dícheangail agus athcheangail an gléas, agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>Error writing to storage device.
+
+Some writes failed to complete. This could be caused by:
+• Storage device disconnected during write
+• Device is full or write-protected
+• Hardware failure
+
+Please check the device and try again.</source>
+        <translation>Earráid ag scríobh chuig gléas stórála.
+
+Theip ar roinnt scríbhneoireachta a chríochnú. D’fhéadfadh sé seo a bheith mar thoradh ar:
+• Gléas stórála dícheangailte le linn scríbhneoireachta
+• Gléas lán nó cosanta ag scríobh
+• Teip crua-earraí
+
+Seiceáil an gléas agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>flush</source>
+        <translation>sruthlaigh</translation>
+    </message>
+    <message>
+        <source>sync</source>
+        <translation>sioncrónú</translation>
+    </message>
+    <message>
+        <source>writing partition table</source>
+        <translation>tábla deighilte scríbhneoireachta</translation>
+    </message>
+    <message>
+        <source>final flush</source>
+        <translation>sruthlú deiridh</translation>
+    </message>
+    <message>
+        <source>final sync</source>
+        <translation>sioncrónú deiridh</translation>
     </message>
 </context>
 <context>
@@ -713,6 +1207,113 @@
     <message>
         <source>Cannot format device: insufficient permissions. Please run with elevated privileges (sudo).</source>
         <translation>Ní féidir an gléas a fhormáidiú: ceadanna neamhleor. Rith le ceadanna ardaithe (sudo) le do thoil.</translation>
+    </message>
+    <message>
+        <source>Failed to unmount disk '%1'. Please close any applications using the disk and try again.</source>
+        <translation>Theip ar dhíshuiteáil diosca '%1'. Dún aon fheidhmchláir a úsáideann an diosca agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>Failed to unmount disk '%1'.</source>
+        <translation>Theip ar dhíshuiteáil diosca '%1'.</translation>
+    </message>
+</context>
+<context>
+    <name>FastbootFlashThread</name>
+    <message>
+        <source>Applying OS customisation...</source>
+        <translation>Saincheapadh OS á chur i bhfeidhm...</translation>
+    </message>
+    <message>
+        <source>Failed to mount boot partition: %1</source>
+        <translation>Theip ar an deighilt tosaithe a fheistiú: %1</translation>
+    </message>
+    <message>
+        <source>Failed to read config.txt: %1</source>
+        <translation>Theip ar léamh config.txt: %1</translation>
+    </message>
+    <message>
+        <source>Failed to write config.txt: %1</source>
+        <translation>Theip ar scríobh config.txt: %1</translation>
+    </message>
+    <message>
+        <source>Failed to write firstrun.sh: %1</source>
+        <translation>Theip ar firstrun.sh a scríobh: %1</translation>
+    </message>
+    <message>
+        <source>Failed to write meta-data: %1</source>
+        <translation>Theip ar scríobh meiteashonraí: %1</translation>
+    </message>
+    <message>
+        <source>Failed to write user-data: %1</source>
+        <translation>Theip ar shonraí úsáideora a scríobh: %1</translation>
+    </message>
+    <message>
+        <source>Failed to write network-config: %1</source>
+        <translation>Theip ar chumraíocht líonra a scríobh: %1</translation>
+    </message>
+    <message>
+        <source>Failed to read cmdline.txt: %1</source>
+        <translation>Theip ar cmdline.txt a léamh: %1</translation>
+    </message>
+    <message>
+        <source>Failed to write cmdline.txt: %1</source>
+        <translation>Theip ar cmdline.txt a scríobh: %1</translation>
+    </message>
+    <message>
+        <source>Failed to initialize curl</source>
+        <translation>Theip ar an gcuar a thosú</translation>
+    </message>
+    <message>
+        <source>No entries in image archive</source>
+        <translation>Gan aon iontrálacha sa chartlann íomhánna</translation>
+    </message>
+    <message>
+        <source>Fastboot error: %1</source>
+        <translation>Earráid tosaithe tapa: %1</translation>
+    </message>
+    <message>
+        <source>Fastboot error: unexpected internal error</source>
+        <translation>Earráid Fastboot: earráid inmheánach gan choinne</translation>
+    </message>
+    <message>
+        <source>Connecting to fastboot device...</source>
+        <translation>Ag ceangal le gléas tosaithe tapa...</translation>
+    </message>
+    <message>
+        <source>Failed to open fastboot device: %1</source>
+        <translation>Theip ar oscailt an fheiste tosaithe tapa: %1</translation>
+    </message>
+    <message>
+        <source>Downloading and flashing OS image...</source>
+        <translation>Íomhá an chórais oibriúcháin á íoslódáil agus á splancadh...</translation>
+    </message>
+    <message>
+        <source>Fetching block map...</source>
+        <translation>Ag fáil léarscáil bhloc...</translation>
+    </message>
+    <message>
+        <source>Fastboot download failed: %1</source>
+        <translation>Theip ar íoslódáil Fastboot: %1</translation>
+    </message>
+    <message>
+        <source>Fastboot flash failed: %1</source>
+        <translation>Theip ar an bhflash Fastboot: %1</translation>
+    </message>
+    <message>
+        <source>Download failed: %1</source>
+        <translation>Theip ar an íoslódáil: %1</translation>
+    </message>
+    <message>
+        <source>Decompression failed: %1</source>
+        <translation>Theip ar dhí-chomhbhrú: %1</translation>
+    </message>
+    <message>
+        <source>Cancelled</source>
+        <translation>Cealaithe</translation>
+    </message>
+    <message>
+        <source>Image hash mismatch. Expected: %1 Got: %2</source>
+        <translation>Mí-oiriúnacht haise íomhá. Bhíothas ag súil leis: %1 Fuarthas: %2</translation>
     </message>
 </context>
 <context>
@@ -867,12 +1468,16 @@
 <context>
     <name>ImComboBox</name>
     <message>
-        <source>Type to search: "%1"</source>
-        <translation>Clóscríobh le cuardach: "%1"</translation>
+        <source>Search: "%1"</source>
+        <translation>Cuardaigh: "%1"</translation>
     </message>
     <message>
-        <source>(press again to cycle)</source>
-        <translation>(brúigh arís chun rothlú)</translation>
+        <source>%1 of %2</source>
+        <translation>%1 de %2</translation>
+    </message>
+    <message>
+        <source>No matches</source>
+        <translation>Gan aon mheaitseálacha</translation>
     </message>
 </context>
 <context>
@@ -936,12 +1541,16 @@
     <message>
         <source>Navigate to a folder using the panel on the left,
 or type a path in the address bar above.</source>
-        <translation>Téigh chuig fillteán ag baint úsáide as an bpainéal ar chlé, 
+        <translation>Téigh chuig fillteán ag baint úsáide as an bpainéal ar chlé,
 nó clóscríobh cosán sa bharra seoltaí thuas.</translation>
     </message>
     <message>
         <source>Save</source>
         <translation>Sábháil</translation>
+    </message>
+    <message>
+        <source>Enter folder or file path…</source>
+        <translation>Cuir isteach cosán fillteáin nó comhaid…</translation>
     </message>
 </context>
 <context>
@@ -1021,20 +1630,12 @@ nó clóscríobh cosán sa bharra seoltaí thuas.</translation>
 <context>
     <name>ImageWriter</name>
     <message>
-        <source>Input file is not a valid disk image.&lt;br&gt;File size %1 bytes is not a multiple of 512 bytes.</source>
-        <translation>Ní íomhá diosca bailí é an comhad ionchuir.&lt;br&gt;Ní iolraí de 512 beart é méid an chomhaid %1 beart.</translation>
-    </message>
-    <message>
         <source>Select image</source>
         <translation>Roghnaigh íomhá</translation>
     </message>
     <message>
         <source>STP is enabled on your Ethernet switch. Getting IP will take long time.</source>
         <translation>Tá STP cumasaithe ar do lasc Ethernet. Tógfaidh sé tamall fada IP a fháil.</translation>
-    </message>
-    <message>
-        <source>Storage capacity is not large enough.&lt;br&gt;Needs to be at least %1.</source>
-        <translation>Níl an cumas stórála mór go leor.&lt;br&gt;Ní mór dó a bheith %1 ar a laghad.</translation>
     </message>
     <message>
         <source>B</source>
@@ -1111,6 +1712,62 @@ nó clóscríobh cosán sa bharra seoltaí thuas.</translation>
     <message>
         <source>JSON files (*.json);;All files (*)</source>
         <translation>Comhaid JSON (*.json);;Gach comhad (*)</translation>
+    </message>
+    <message>
+        <source>Starting fastboot flash...</source>
+        <translation>Ag tosú flash tosaithe tapa...</translation>
+    </message>
+    <message>
+        <source>Preparing device for imaging...</source>
+        <translation>Gléas á ullmhú le haghaidh íomháithe...</translation>
+    </message>
+    <message>
+        <source>Storage capacity is not large enough.
+
+The image requires at least %1 of storage.</source>
+        <translation>Níl an cumas stórála mór go leor.
+
+Teastaíonn %1 ar a laghad den stóráil don íomhá.</translation>
+    </message>
+    <message>
+        <source>Input file is not a valid disk image.
+
+File size %1 bytes is not a multiple of 512 bytes.</source>
+        <translation>Ní íomhá diosca bailí é an comhad ionchuir.
+
+Ní iolraí de 512 beart é méid an chomhaid %1 beart.</translation>
+    </message>
+    <message>
+        <source>Failed to start write operation: insufficient memory.
+
+The system does not have enough available memory to perform this operation. Try closing other applications to free up memory, then try again.
+
+Technical details: %1</source>
+        <translation>Theip ar an oibríocht scríbhneoireachta a thosú: cuimhne neamhleor.
+
+Níl dóthain cuimhne ar fáil ag an gcóras chun an oibríocht seo a dhéanamh. Déan iarracht feidhmchláir eile a dhúnadh chun cuimhne a shaoradh, agus déan iarracht arís.
+
+Sonraí teicniúla: %1</translation>
+    </message>
+    <message>
+        <source>Failed to start write operation: %1</source>
+        <translation>Theip ar an oibríocht scríbhneoireachta a thosú: %1</translation>
+    </message>
+    <message>
+        <source>Limited by download speed</source>
+        <translation>Teoranta ag luas íoslódála</translation>
+    </message>
+    <message>
+        <source>Limited by decompression speed</source>
+        <translation>Teoranta ag luas dí-chomhbhrúite</translation>
+    </message>
+    <message>
+        <source>Limited by storage device speed</source>
+        <translation>Teoranta ag luas an fheiste stórála</translation>
+    </message>
+    <message>
+        <source>Verifying written data</source>
+        <translation>Sonraí scríofa a fhíorú</translation>
     </message>
 </context>
 <context>
@@ -1228,19 +1885,13 @@ nó clóscríobh cosán sa bharra seoltaí thuas.</translation>
         <source>Choose your keyboard layout so keys produce the correct characters when typing. This is automatically recommended based on your capital city selection, but you can change it if you use a different keyboard layout.</source>
         <translation>Roghnaigh leagan amach do mhéarchláir ionas go dtáirgfidh na heochracha na carachtair chearta agus tú ag clóscríobh. Moltar é seo go huathoibríoch bunaithe ar do rogha príomhchathair, ach is féidir leat é a athrú má úsáideann tú leagan amach méarchláir difriúil.</translation>
     </message>
-</context>
-<context>
-    <name>MacFile</name>
     <message>
-        <source>Raspberry Pi Imager needs to access the disk to write the image.</source>
-        <translation>Caithfidh Raspberry Pi Imager rochtain a fháil ar an diosca chun an íomhá a scríobh.</translation>
+        <source>Why am I being asked this?</source>
+        <translation>Cén fáth a bhfuil an cheist seo á cur orm?</translation>
     </message>
-</context>
-<context>
-    <name>NativeFileDialog</name>
     <message>
-        <source>File type:</source>
-        <translation>Cineál comhaid:</translation>
+        <source>This also sets the Wi-Fi regulatory domain for your region.</source>
+        <translation>Socraíonn sé seo an fearann ​​rialála Wi-Fi do do réigiún freisin.</translation>
     </message>
 </context>
 <context>
@@ -1315,6 +1966,49 @@ nó clóscríobh cosán sa bharra seoltaí thuas.</translation>
     <message>
         <source>Released: %1</source>
         <translation>Scaoilte: %1</translation>
+    </message>
+    <message>
+        <source>Unable to download OS list. You can still use a local image file.</source>
+        <translation>Ní féidir liosta OS a íoslódáil. Is féidir leat comhad íomhá áitiúil a úsáid fós.</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Déan iarracht arís</translation>
+    </message>
+    <message>
+        <source>Retry downloading the OS list</source>
+        <translation>Déan iarracht an liosta OS a íoslódáil arís</translation>
+    </message>
+</context>
+<context>
+    <name>PasswordlessSudoWarningDialog</name>
+    <message>
+        <source>Passwordless Sudo</source>
+        <translation>Sudo Gan Pasfhocal</translation>
+    </message>
+    <message>
+        <source>Enabling passwordless sudo allows any process running as this user to gain full root privileges without authentication. This significantly weakens the security of your system.</source>
+        <translation>Trí sudo gan focal faire a chumasú, is féidir le haon phróiseas atá ag rith mar an úsáideoir seo pribhléidí fréimhe iomlána a fháil gan fíordheimhniú. Laghdaíonn sé seo slándáil do chórais go suntasach.</translation>
+    </message>
+    <message>
+        <source>Only enable this if you understand the risks and have a specific need, such as automated scripts or headless operation.</source>
+        <translation>Ná cumasaigh é seo ach amháin má thuigeann tú na rioscaí agus má tá riachtanas sonrach agat, amhail scripteanna uathoibrithe nó oibriú gan cheann.</translation>
+    </message>
+    <message>
+        <source>CANCEL</source>
+        <translation>CEALAIGH</translation>
+    </message>
+    <message>
+        <source>Cancel and keep sudo requiring a password</source>
+        <translation>Cealaigh agus coinnigh sudo ag iarraidh pasfhocal</translation>
+    </message>
+    <message>
+        <source>ENABLE</source>
+        <translation>CUMASCAIGH</translation>
+    </message>
+    <message>
+        <source>Enable passwordless sudo for this user account</source>
+        <translation>Cumasaigh sudo gan focal faire don chuntas úsáideora seo</translation>
     </message>
 </context>
 <context>
@@ -1429,6 +2123,38 @@ Click "Install Authorization" to set up automatic privilege elevation, or run ma
         <translation>Níl tú ag rith mar fhréamh.
 
 Cliceáil "Suiteáil Údarú" chun ardú uathoibríoch pribhléide a shocrú, nó rith de láimh le: sudo %1</translation>
+    </message>
+    <message>
+        <source>Invalid Windows physical drive path: %1</source>
+        <translation>Cosán tiomántán fisiciúil Windows neamhbhailí: %1</translation>
+    </message>
+    <message>
+        <source>Failed to open disk for cleaning. Error code: %1</source>
+        <translation>Theip ar an diosca a oscailt le haghaidh glanadh. Cód earráide: %1</translation>
+    </message>
+    <message>
+        <source>Failed to clear partition table. Error code: %1</source>
+        <translation>Theip ar an tábla deighilte a ghlanadh. Cód earráide: %1</translation>
+    </message>
+    <message>
+        <source>Failed to start disk cleanup utility. Please ensure you have administrator privileges.</source>
+        <translation>Theip ar thosú an fheidhmchláir glantacháin diosca. Cinntigh go bhfuil ceadanna riarthóra agat.</translation>
+    </message>
+    <message>
+        <source>Disk cleaning operation timed out. The disk may be in use by another application.</source>
+        <translation>Tá an t-am caite don oibríocht glantacháin diosca. B’fhéidir go bhfuil an diosca in úsáid ag feidhmchlár eile.</translation>
+    </message>
+    <message>
+        <source>Failed to clean disk. Error: %1</source>
+        <translation>Theip ar an diosca a ghlanadh. Earráid: %1</translation>
+    </message>
+    <message>
+        <source>Unknown error</source>
+        <translation>Earráid anaithnid</translation>
+    </message>
+    <message>
+        <source>Failed to clean disk after %1 attempts. %2</source>
+        <translation>Theip ar an diosca a ghlanadh tar éis %1 iarracht. %2</translation>
     </message>
 </context>
 <context>
@@ -1554,6 +2280,65 @@ Cliceáil "Suiteáil Údarú" chun ardú uathoibríoch pribhléide a shocrú, n�
     </message>
 </context>
 <context>
+    <name>RpibootThread</name>
+    <message>
+        <source>Downloading firmware...</source>
+        <translation>Ag íoslódáil dochtearraí...</translation>
+    </message>
+    <message>
+        <source>Failed to obtain rpiboot firmware: %1</source>
+        <translation>Theip ar dochtearraí rpiboot a fháil: %1</translation>
+    </message>
+    <message>
+        <source>Connecting to device...</source>
+        <translation>Ag ceangal le gléas...</translation>
+    </message>
+    <message>
+        <source>Failed to open USB device</source>
+        <translation>Theip ar oscailt gléas USB</translation>
+    </message>
+    <message>
+        <source>rpiboot protocol failed: %1</source>
+        <translation>Theip ar phrótacal rpiboot: %1</translation>
+    </message>
+    <message>
+        <source>USB error: %1</source>
+        <translation>Earráid USB: %1</translation>
+    </message>
+    <message>
+        <source>Waiting for device to restart...</source>
+        <translation>Ag fanacht go n-atosóidh an gléas...</translation>
+    </message>
+    <message>
+        <source>Failed to open USB device after re-enumeration</source>
+        <translation>Theip ar oscailt gléas USB tar éis ath-áireamh</translation>
+    </message>
+    <message>
+        <source>Waiting for fastboot device...</source>
+        <translation>Ag fanacht le gléas fastboot...</translation>
+    </message>
+    <message>
+        <source>Timed out waiting for fastboot device to appear.</source>
+        <translation>Chuaigh an t-am amach ag fanacht le feiste fastboot a bheith le feiceáil.</translation>
+    </message>
+    <message>
+        <source>Waiting for device to disconnect (%1/%2)...</source>
+        <translation>Ag fanacht go ndícheanglóidh an gléas (%1/%2...</translation>
+    </message>
+    <message>
+        <source>Device disconnected, waiting for reconnect...</source>
+        <translation>Gléas dícheangailte, ag fanacht le hathcheangal...</translation>
+    </message>
+    <message>
+        <source>Waiting for device to reconnect (%1/%2s)...</source>
+        <translation>Ag fanacht go n-athcheanglóidh an gléas (%1/%2s...</translation>
+    </message>
+    <message>
+        <source>Timed out waiting for device to re-enumerate after bootcode upload (waited %1s).</source>
+        <translation>Chuaigh an t-am amach ag fanacht leis an ngléas a ath-liostadh tar éis uaslódála an chóid tosaithe (fanadh %1s).</translation>
+    </message>
+</context>
+<context>
     <name>SecureBootCustomizationStep</name>
     <message>
         <source>Customisation: Secure Boot</source>
@@ -1646,6 +2431,26 @@ Cliceáil "Suiteáil Údarú" chun ardú uathoibríoch pribhléide a shocrú, n�
     <message>
         <source>All Files (*)</source>
         <translation>Gach Comhad (*)</translation>
+    </message>
+    <message>
+        <source>OTP Secure Boot Provisioning</source>
+        <translation>Soláthar Tosaithe Slán OTP</translation>
+    </message>
+    <message>
+        <source>Program the secure boot public key hash into the device's OTP memory. This is a permanent, irreversible operation.</source>
+        <translation>Cláraigh an hais eochrach phoiblí don tosaithe slán i gcuimhne OTP an ghléis. Is oibríocht bhuan, neamh-inchúlghairthe í seo.</translation>
+    </message>
+    <message>
+        <source>Provision Secure Boot OTP</source>
+        <translation>Soláthar OTP Tosaithe Slán</translation>
+    </message>
+    <message>
+        <source>Permanently program the secure boot key into device OTP memory</source>
+        <translation>Cláraigh an eochair tosaithe slán go buan i gcuimhne OTP an ghléis</translation>
+    </message>
+    <message>
+        <source>WARNING: After OTP provisioning, this device will ONLY boot images signed with the selected key. This cannot be undone.</source>
+        <translation>RABHADH: Tar éis soláthar OTP, ní dhéanfaidh an gléas seo ach íomhánna atá sínithe leis an eochair roghnaithe a thosú. Ní féidir é seo a chealú.</translation>
     </message>
 </context>
 <context>
@@ -1782,7 +2587,7 @@ Cliceáil "Suiteáil Údarú" chun ardú uathoibríoch pribhléide a shocrú, n�
 Try connecting a new device, or uncheck
 'Exclude system drives' below.</source>
         <translation>Is féidir gach gléas atá le feiceáil a léamh amháin.
-Bain triail as gléas nua a nascadh, nó díthiceáil 
+Bain triail as gléas nua a nascadh, nó díthiceáil
 'Eisiamh tiomántáin chórais' thíos.</translation>
     </message>
     <message>
@@ -1796,7 +2601,8 @@ Ceangail gléas stórála inscríofa le do thoil.</translation>
 Uncheck 'Exclude system drives' below
 to show system drives.</source>
         <translation>Tá gach gléas i bhfolach ag an scagaire.
-Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a thaispeáint.</translation>
+Díthiceáil 'Eisiamh tiomántáin chórais' thíos
+chun tiomántáin chórais a thaispeáint.</translation>
     </message>
     <message>
         <source>When checked, system drives are hidden from the list. Uncheck to show all drives including system drives.</source>
@@ -1808,7 +2614,7 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
     </message>
     <message>
         <source>No valid storage devices are currently available. All visible devices are read-only. Try connecting a new storage device, or uncheck 'Exclude system drives' to show hidden system drives.</source>
-        <translation>Níl aon fheistí stórála bailí ar fáil faoi láthair. Is féidir gach feiste infheicthe a léamh amháin. Bain triail as feiste stórála nua a nascadh, nó díthiceáil 'Eisiamh tiomántáin chórais' chun tiomántáin chórais i bhfolach a thaispeáint.</translation>
+        <translation>Níl aon fheistí stórála bailí ar fáil faoi láthair. Is féidir gach feiste infheicthe a léamh amháin. Bain triail as gléas stórála nua a nascadh, nó díthiceáil 'Eisiamh tiomántáin chórais' chun tiomántáin chórais i bhfolach a thaispeáint.</translation>
     </message>
     <message>
         <source>No valid storage devices are currently available. All devices are read-only. Please connect a writable storage device to continue.</source>
@@ -1817,6 +2623,22 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
     <message>
         <source>No valid storage devices are currently available. Uncheck 'Exclude system drives' to show hidden system drives, or connect a new storage device.</source>
         <translation>Níl aon fheistí stórála bailí ar fáil faoi láthair. Díthiceáil 'Eisiamh tiomántáin chórais' chun tiomántáin chórais i bhfolach a thaispeáint, nó ceangail gléas stórála nua.</translation>
+    </message>
+    <message>
+        <source>Could not list storage devices: %1</source>
+        <translation>Níorbh fhéidir gléasanna stórála a liostáil: %1</translation>
+    </message>
+    <message>
+        <source>Error: Could not list storage devices. %1</source>
+        <translation>Earráid: Níorbh fhéidir gléasanna stórála a liostáil. %1</translation>
+    </message>
+    <message>
+        <source>Ready for USB boot</source>
+        <translation>Réidh le haghaidh tosaithe USB</translation>
+    </message>
+    <message>
+        <source>Could not list storage devices: %1. This may be a permissions issue. Try running the application with administrator privileges.</source>
+        <translation>Níorbh fhéidir gléasanna stórála a liostáil: %1. B’fhéidir gur fadhb ceadanna atá ann. Bain triail as an bhfeidhmchlár a rith le ceadanna riarthóra.</translation>
     </message>
 </context>
 <context>
@@ -1836,6 +2658,14 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
     <message>
         <source>Open the Raspberry Pi website in your browser to download the latest version</source>
         <translation>Oscail suíomh Gréasáin Raspberry Pi i do bhrabhsálaí chun an leagan is déanaí a íoslódáil</translation>
+    </message>
+    <message>
+        <source>Imager version %1 is available. Would you like to visit the website to download it?</source>
+        <translation>Tá leagan %1 den íomháire ar fáil. Ar mhaith leat cuairt a thabhairt ar an suíomh Gréasáin chun é a íoslódáil?</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Nuashonrú</translation>
     </message>
 </context>
 <context>
@@ -1911,6 +2741,22 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
     <message>
         <source>Re-enter the password to confirm it matches.</source>
         <translation>Athiontráil an focal faire chun a dheimhniú go bhfuil sé ag teacht leis.</translation>
+    </message>
+    <message>
+        <source>Enable passwordless sudo</source>
+        <translation>Cumasaigh sudo gan focal faire</translation>
+    </message>
+    <message>
+        <source>Allow this user to run sudo commands without entering a password.</source>
+        <translation>Lig don úsáideoir seo orduithe sudo a rith gan focal faire a iontráil.</translation>
+    </message>
+    <message>
+        <source>Allows any process running as this user to gain full root privileges without a password. Only enable this if you have a specific need, such as automated scripts or headless operation.</source>
+        <translation>Ceadaíonn sé seo d'aon phróiseas atá ag rith mar an úsáideoir seo pribhléidí fréimhe iomlána a fháil gan focal faire. Ná cumasaigh é seo ach amháin má tá riachtanas ar leith agat, amhail scripteanna uathoibrithe nó oibríocht gan cheann.</translation>
+    </message>
+    <message>
+        <source>Passwordless sudo information: </source>
+        <translation>Faisnéis sudo gan focal faire:</translation>
     </message>
 </context>
 <context>
@@ -2102,7 +2948,7 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
         <source>A new Raspberry Pi Connect token was received that differs from your current one.
 
 </source>
-        <translation>A new Raspberry Pi Connect token was received that differs from your current one.
+        <translation>Fuarthas comhartha nua Raspberry Pi Connect atá difriúil ón gceann atá agat faoi láthair.
 
 </translation>
     </message>
@@ -2142,6 +2988,62 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
         <source>Warning: Only overwrite the token if you initiated this action.</source>
         <translation>Rabhadh: Ná scríobh an comhartha arís ach amháin má thionscain tú an gníomh seo.</translation>
     </message>
+    <message>
+        <source>Sidebar resize handle</source>
+        <translation>Láimhseáil athraithe méide barra taoibh</translation>
+    </message>
+    <message>
+        <source>Open local repository file?</source>
+        <translation>An comhad stórtha áitiúil a oscailt?</translation>
+    </message>
+    <message>
+        <source>Switch to a custom repository?</source>
+        <translation>Athraigh go stórlann saincheaptha?</translation>
+    </message>
+    <message>
+        <source>You are opening a local Raspberry Pi Imager manifest file. This will replace the current OS list with the contents of this file.</source>
+        <translation>Tá comhad manifíse áitiúil Raspberry Pi Imager á oscailt agat. Cuirfidh sé seo ábhar an chomhaid seo in ionad an liosta OS reatha.</translation>
+    </message>
+    <message>
+        <source>A website is requesting to switch Raspberry Pi Imager to use a custom OS repository.
+
+</source>
+        <translation>Tá suíomh Gréasáin ag iarraidh Raspberry Pi Imager a athrú chun stórlann oibriúcháin saincheaptha a úsáid.
+
+</translation>
+    </message>
+    <message>
+        <source>Only accept if you trust this source and intentionally clicked a link to open this repository.</source>
+        <translation>Glac leis ach amháin má tá muinín agat as an bhfoinse seo agus má chliceáil tú d'aon ghnó ar nasc chun an stórlann seo a oscailt.</translation>
+    </message>
+    <message>
+        <source>Repository URL: %1</source>
+        <translation>URL an Stórais: %1</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>Oscail</translation>
+    </message>
+    <message>
+        <source>Switch repository</source>
+        <translation>Athraigh stórlann</translation>
+    </message>
+    <message>
+        <source>Open the local manifest file and use it as the OS repository</source>
+        <translation>Oscail an comhad manifíse áitiúil agus bain úsáid as mar stórlann an chórais oibriúcháin</translation>
+    </message>
+    <message>
+        <source>Switch to the custom repository from the link</source>
+        <translation>Athraigh go dtí an stór saincheaptha ón nasc</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cealaigh</translation>
+    </message>
+    <message>
+        <source>Keep your current repository settings</source>
+        <translation>Coinnigh do shocruithe stórais reatha</translation>
+    </message>
 </context>
 <context>
     <name>WizardStepBase</name>
@@ -2152,6 +3054,25 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
     <message>
         <source>Skip customisation</source>
         <translation>Seachain an saincheapadh</translation>
+    </message>
+</context>
+<context>
+    <name>WriteProgressWatchdog</name>
+    <message>
+        <source>Switched to compatibility mode - write continuing...</source>
+        <translation>Athraithe go mód comhoiriúnachta - scríobh ag leanúint ar aghaidh...</translation>
+    </message>
+    <message>
+        <source>Write stalled - no progress for %1 seconds.
+
+Please check your storage device and try again.</source>
+        <translation>Scríobh stoptha - gan dul chun cinn ar feadh %1 soicind.
+
+Seiceáil do ghléas stórála agus déan iarracht arís.</translation>
+    </message>
+    <message>
+        <source>Storage device not responding. Restarting in compatibility mode...</source>
+        <translation>Gléas stórála gan freagairt. Ag atosú i mód comhoiriúnachta...</translation>
     </message>
 </context>
 <context>
@@ -2288,6 +3209,10 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
         <source>Please wait... %1</source>
         <translation>Fan le do thoil... %1</translation>
     </message>
+    <message>
+        <source>Writing... %1 MB written</source>
+        <translation>Ag scríobh... %1 MB scríofa</translation>
+    </message>
 </context>
 <context>
     <name>main</name>
@@ -2386,6 +3311,14 @@ Díthiceáil 'Eisiamh tiomántáin chórais' thíos chun tiomántáin chórais a
     <message>
         <source>All files (*)</source>
         <translation>Gach comhad (*)</translation>
+    </message>
+    <message>
+        <source>Offline</source>
+        <translation>As líne</translation>
+    </message>
+    <message>
+        <source>Using data from %1</source>
+        <translation>Ag baint úsáide as sonraí ó %1</translation>
     </message>
 </context>
 </TS>

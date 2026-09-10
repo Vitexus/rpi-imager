@@ -14,24 +14,32 @@
 #include <QThread>
 #include <QFile>
 #include <QElapsedTimer>
-#include <fstream>
+#include <QFuture>
+#include <QMap>
 #include <atomic>
 #include <time.h>
 #include <curl/curl.h>
 #include "acceleratedcryptographichash.h"
-
-#ifdef Q_OS_WIN
-#include "windows/winfile.h"
-#endif
-#ifdef Q_OS_DARWIN
-#include "mac/macfile.h"
-#endif
+#include "imageadvancedoptions.h"
+#include "systemmemorymanager.h"
+#include "file_operations.h"
+#include "asynccachewriter.h"
 
 
 class DownloadThread : public QThread
 {
     Q_OBJECT
 public:
+    // Bottleneck states for progress feedback
+    enum class BottleneckState {
+        None,           // Pipeline flowing smoothly
+        Network,        // Waiting for network download
+        Decompression,  // CPU-bound decompression
+        Storage,        // Waiting for storage device
+        Verifying       // Reading back for verification
+    };
+    Q_ENUM(BottleneckState)
+
     /*
      * Constructor
      *
@@ -116,19 +124,66 @@ public:
     /*
      * Enable image customization
      */
-    void setImageCustomization(const QByteArray &config, const QByteArray &cmdline, const QByteArray &firstrun, const QByteArray &cloudinit, const QByteArray &cloudinitNetwork, const QByteArray &initFormat);
+    void setImageCustomisation(const QByteArray &config, const QByteArray &cmdline, const QByteArray &firstrun, const QByteArray &cloudinit, const QByteArray &cloudinitNetwork, const QByteArray &initFormat, const ImageOptions::AdvancedOptions opts);
+
+    /*
+     * Debug options (set before starting the thread)
+     */
+    void setDebugDirectIO(bool enabled);
+    void setDebugPeriodicSync(bool enabled);
+    void setDebugVerboseLogging(bool enabled);
+    void setDebugAsyncIO(bool enabled);
+    void setDebugAsyncQueueDepth(int depth);
+    void setDebugIPv4Only(bool enabled);
+    void setDebugSkipEndOfDevice(bool enabled);
+    void setDebugIgnoreDeviceLimits(bool enabled);
 
     /*
      * Thread safe download progress query functions
      */
     uint64_t dlNow();
     uint64_t dlTotal();
+    uint64_t extractTotal();
+    void setExtractTotal(uint64_t total);
     uint64_t verifyNow();
     uint64_t verifyTotal();
     uint64_t bytesWritten();
+    int pendingAsyncWrites() const;
+    
+    // Force poll for async I/O completions - call when stall detected
+    // This can unstick deadlocks where no one is polling IOCP
+    void forcePollAsyncCompletions();
+    
+    // Reduce async queue depth for recovery - allows pending writes to drain
+    // Returns true if reduction was applied, false if not supported
+    bool reduceAsyncQueueDepth(int newDepth);
+    
+    // Get current async queue depth
+    int getAsyncQueueDepth() const;
+    
+    // Drain pending async writes and switch to sync mode for hot-swap.
+    // Waits up to timeoutSeconds for pending writes to complete naturally.
+    // Returns true if drain succeeded (all pending completed), false if timeout.
+    // After success, writes continue in sync mode without restart.
+    bool drainAndSwitchToSync(int timeoutSeconds);
+    
+    // Force recovery from stuck async I/O - cancels pending writes and switches to sync
+    // Call this when stall is persistent and forcePollAsyncCompletions doesn't help
+    void forceAsyncRecovery();
 
     virtual bool isImage();
-    size_t _writeFile(const char *buf, size_t len);
+    
+    // Write completion callback - called when write (including async) is truly complete
+    // Used for zero-copy async I/O where the buffer must stay valid until write finishes
+    using WriteCompleteCallback = std::function<void()>;
+    
+    // Write data to output file/device
+    // If onComplete is provided and async I/O is enabled, it's called when the write
+    // actually finishes (not when it's queued). The caller should NOT free/reuse the
+    // buffer until onComplete is called.
+    // If onComplete is null or async is disabled, the buffer can be reused after return.
+    size_t _writeFileZeroSkip(const char *buf, size_t len);
+    size_t _writeFile(const char *buf, size_t len, WriteCompleteCallback onComplete = nullptr);
 
 signals:
     void success();
@@ -137,23 +192,82 @@ signals:
     void cacheFileHashUpdated(QByteArray cacheFileHash, QByteArray imageHash);
     void finalizing();
     void preparationStatusUpdate(QString msg);
+    // Background eject progress after a successful write. ejectStarted() is
+    // emitted before success() so the UI already shows "ejecting" when the
+    // done screen appears; ejectFinished() follows when the drive is safe to
+    // remove (or the eject gave up).
+    void ejectStarted();
+    void ejectFinished(bool succeeded);
+    
+    // Performance event signals (connected by ImageWriter to PerformanceStats)
+    void eventDriveUnmount(quint32 durationMs, bool success);
+    void eventDriveUnmountVolumes(quint32 durationMs, bool success);  // Windows volume unmounting
+    void eventDriveDiskClean(quint32 durationMs, bool success);       // Windows disk cleaning
+    void eventDriveRescan(quint32 durationMs, bool success);          // Windows disk rescan
+    void eventDriveOpen(quint32 durationMs, bool success, QString metadata);
+    void eventDriveAuthorization(quint32 durationMs, bool success);   // Privilege escalation timing
+    void eventDriveMbrZeroing(quint32 durationMs, bool success, QString metadata);  // MBR zeroing timing
+    void eventDirectIOAttempt(bool attempted, bool succeeded, bool currentlyEnabled, int errorCode, QString errorMessage);
+    void eventCustomisation(quint32 durationMs, bool success, QString metadata);
+    void eventCustomisationVerify(quint32 durationMs, bool success, QString metadata);  // Customisation read-back check
+    void finalSyncStarting();  // Emitted before post-write fdatasync/fsync
+    void eventFinalSync(quint32 durationMs, bool success);
+    void eventVerify(quint32 durationMs, bool success, QByteArray writeHash, QByteArray verifyHash);
+    void eventDecompressInit(quint32 durationMs, bool success);
+    void eventPeriodicSync(quint32 durationMs, bool success, quint64 bytesWritten);
+    void eventImageExtraction(quint32 durationMs, bool success);      // Archive extraction setup
+    void eventPartitionTableWrite(quint32 durationMs, bool success);  // MBR/partition table write
+    void eventFatPartitionSetup(quint32 durationMs, bool success);    // FAT partition parsing
+    void eventDeviceClose(quint32 durationMs, bool success);          // Device handle close
+    void eventNetworkRetry(quint32 sleepMs, QString metadata);        // Network retry with reason
+    void eventNetworkConnectionStats(QString metadata);               // CURL connection timing stats
+    void eventDeviceIOTimeout(quint32 pendingWrites, QString metadata); // Device failed to complete I/O
+    void eventQueueDepthReduction(int oldDepth, int newDepth, int pendingWrites); // Async queue depth reduced
+    void eventDrainAndHotSwap(quint32 durationMs, int pendingBefore, bool success); // Drained queue and switched to sync
+    void syncFallbackActivated(QString reason); // Async I/O stalled, fell back to sync mode
+    void requestWriteRestart(QString reason);  // Request ImageWriter to restart write from scratch
+    
+    // Write timing breakdown signals (for hypothesis testing)
+    void eventWriteTimingBreakdown(quint32 totalWriteOps, quint64 totalSyscallMs, quint64 totalPreHashWaitMs,
+                                   quint64 totalPostHashWaitMs, quint64 totalSyncMs, quint32 syncCount);
+    void eventWriteSizeDistribution(quint32 minSizeKB, quint32 maxSizeKB, quint32 avgSizeKB, quint64 totalBytes, quint32 writeCount);
+    void eventWriteAfterSyncImpact(quint32 avgThroughputBeforeSyncKBps, quint32 avgThroughputAfterSyncKBps, quint32 sampleCount);
+    void eventAsyncIOConfig(bool enabled, bool supported, int queueDepth, quint32 pendingAtEnd);
+    void eventAsyncIOTiming(quint32 totalMs, quint64 bytesWritten, quint32 writeCount);
+    
+    // Bottleneck state signal for UI feedback
+    void bottleneckStateChanged(DownloadThread::BottleneckState state, quint32 throughputKBps);
+    
+    // Async write progress signal - emitted from completion callbacks (thread-safe)
+    // Connected to UI with Qt::QueuedConnection for cross-thread safety
+    void asyncWriteProgress(quint64 bytesWritten, quint64 totalBytes);
 
 protected:
     virtual void run();
     virtual void _onDownloadSuccess();
     virtual void _onDownloadError(const QString &msg);
     virtual void _onWriteError();
+    QString _fileErrorToString(rpi_imager::FileError error, const QString &operation = QString());
 
     void _hashData(const char *buf, size_t len);
     void _writeComplete();
+    void _performEject();
     virtual bool _verify();
+    virtual void _onVerifyProgress() {}  // Called during verify loop for progress updates
     int _authopen(const QByteArray &filename);
     bool _openAndPrepareDevice();
+    virtual void _onDevicePrepared() {}  // Hook for subclasses after device open, before writes
     void _writeCache(const char *buf, size_t len);
     qint64 _sectorsWritten();
     void _closeFiles();
     QByteArray _fileGetContentsTrimmed(const QString &filename);
     bool _customizeImage();
+    bool _createSecureBootFiles(class DeviceWrapperFatPartition *fat);
+    /* Record what customisation wrote, so _verifyCustomisation() can check the
+       media actually kept it. */
+    void _recordCustomisationWrite(const QString &filename, const QByteArray &contents);
+    bool _verifyCustomisation();
+    void _periodicSync();
 
     /*
      * libcurl callbacks
@@ -168,31 +282,122 @@ protected:
 
     CURL *_c;
     curl_off_t _startOffset;
-    std::atomic<std::uint64_t> _lastDlTotal, _lastDlNow, _verifyTotal, _lastVerifyNow, _bytesWritten;
+    std::atomic<std::uint64_t> _lastDlTotal, _lastDlNow, _extractTotal, _verifyTotal, _lastVerifyNow, _bytesWritten;
     std::uint64_t _lastFailureOffset;
     qint64 _sectorsStart;
     QByteArray _url, _useragent, _buf, _filename, _lastError, _expectedHash, _config, _cmdline, _firstrun, _cloudinit, _cloudinitNetwork, _initFormat;
+    ImageOptions::AdvancedOptions _advancedOptions;
+    /* What customisation wrote to the boot partition, keyed by filename. A
+       digest rather than the contents, so recording boot.img costs 32 bytes
+       rather than a second copy of a multi-MB buffer. The size is kept
+       separately because it can be checked without reading the file back --
+       truncation is both the commonest signature of a dropped write and the
+       cheapest to detect. */
+    struct CustomisationExpectation {
+        qint64 size;
+        QByteArray digest;  // OSLIST_HASH_ALGORITHM, via AcceleratedCryptographicHash
+    };
+    QMap<QString, CustomisationExpectation> _customisationDigests;
     char *_firstBlock;
     size_t _firstBlockSize;
     static QByteArray _proxy;
-    static int _curlCount;
-    bool _cancelled, _successful, _verifyEnabled, _cacheEnabled, _ejectEnabled;
+    std::atomic<bool> _cancelled;  // Atomic for safe access from timeout utility
+    bool _successful, _verifyEnabled, _cacheEnabled, _ejectEnabled;
     time_t _lastModified, _serverTime, _lastFailureTime;
     QElapsedTimer _timer;
     int _inputBufferSize;
 
+    // Unified cross-platform file operations
+    std::unique_ptr<rpi_imager::FileOperations> _file;
+    
+    // Async cache writer for non-blocking cache file I/O
+    std::unique_ptr<AsyncCacheWriter> _asyncCacheWriter;
+    QString _cacheFilename;  // Store filename for legacy signal emission
+
 #ifdef Q_OS_WIN
-    WinFile _file, _volumeFile;
+    // Windows-specific volume file for legacy compatibility
+    std::unique_ptr<rpi_imager::FileOperations> _volumeFile;
     QByteArray _nr;
-#elif defined(Q_OS_DARWIN)
-    MacFile _file;
-#else
-    QFile _file;
 #endif
-    QFile _cachefile;
 
     AcceleratedCryptographicHash _writehash, _verifyhash;
-    AcceleratedCryptographicHash _cachehash;
+
+    // Pipelined hash computation - store future for previous hash operation
+    QFuture<void> _pendingHashFuture;
+    bool _hasPendingHash;
+
+    // Cross-platform adaptive page cache flushing
+    qint64 _lastSyncBytes;
+    QElapsedTimer _lastSyncTime;
+    SystemMemoryManager::SyncConfiguration _syncConfig;
+    
+    // Debug options
+    bool _debugDirectIO;
+    bool _debugPeriodicSync;
+    bool _debugVerboseLogging;
+    bool _debugAsyncIO;
+    int _debugAsyncQueueDepth;
+    bool _debugIPv4Only;
+    bool _debugSkipEndOfDevice;
+    bool _debugIgnoreDeviceLimits;
+
+    void _initializeSyncConfiguration();
+    void _updateBottleneckState();
+
+    // Verification throughput tracking
+    qint64 _verifyThroughputBytes{0};
+    QElapsedTimer _verifyThroughputTimer;
+
+    // Bottleneck detection state
+    BottleneckState _currentBottleneck;
+    QElapsedTimer _bottleneckTimer;
+    static constexpr int BOTTLENECK_HYSTERESIS_MS = 500;  // Minimum time before changing state
+    
+    // Adaptive memory recovery state (instance members, not static, for thread safety)
+    QElapsedTimer _memoryCheckTimer;
+    bool _memoryCheckStarted = false;
+    
+    // Write timing breakdown tracking (for performance hypothesis testing)
+    struct WriteTimingStats {
+        std::atomic<quint64> totalSyscallMs{0};      // Time in actual write() syscalls
+        std::atomic<quint64> totalPreHashWaitMs{0};  // Time waiting for previous hash before write
+        std::atomic<quint64> totalPostHashWaitMs{0}; // Time waiting for current hash after write
+        std::atomic<quint64> totalSyncMs{0};         // Time in fsync() calls
+        std::atomic<quint32> syncCount{0};           // Number of sync operations performed
+        std::atomic<quint32> writeCount{0};          // Total write operations
+        std::atomic<quint64> totalBytesWritten{0};   // Total bytes written
+        std::atomic<quint32> minWriteSizeBytes{UINT32_MAX}; // Minimum write size
+        std::atomic<quint32> maxWriteSizeBytes{0};   // Maximum write size
+        
+        // For measuring write throughput impact after sync
+        std::atomic<quint64> throughputSamplesBeforeSync{0};  // Sum of KB/s measurements before sync
+        std::atomic<quint32> throughputCountBeforeSync{0};    // Count of measurements before sync
+        std::atomic<quint64> throughputSamplesAfterSync{0};   // Sum of KB/s measurements after sync (first 5 writes after sync)
+        std::atomic<quint32> throughputCountAfterSync{0};     // Count of measurements after sync
+        std::atomic<quint32> writesUntilNextSync{0};          // Counter to track "after sync" writes
+        
+        void reset() {
+            totalSyscallMs.store(0);
+            totalPreHashWaitMs.store(0);
+            totalPostHashWaitMs.store(0);
+            totalSyncMs.store(0);
+            syncCount.store(0);
+            writeCount.store(0);
+            totalBytesWritten.store(0);
+            minWriteSizeBytes.store(UINT32_MAX);
+            maxWriteSizeBytes.store(0);
+            throughputSamplesBeforeSync.store(0);
+            throughputCountBeforeSync.store(0);
+            throughputSamplesAfterSync.store(0);
+            throughputCountAfterSync.store(0);
+            writesUntilNextSync.store(0);
+        }
+    };
+    WriteTimingStats _writeTimingStats;
+    QElapsedTimer _lastWriteTimer;  // For measuring inter-write throughput
+    quint64 _lastWriteBytes{0};     // Bytes written at last measurement
+    
+    void _emitWriteTimingStats();   // Called at end of write phase
 };
 
 #endif // DOWNLOADTHREAD_H

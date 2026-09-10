@@ -11,13 +11,70 @@
 #include <QDebug>
 #include <QJsonValue>
 #include <QLocale>
-#include <QGuiApplication>
 #include <QRandomGenerator>
 #include <qjsonarray.h>
 #include <algorithm>
 #include <QRegularExpression>
+#include <QUrl>
+#include <QFileInfo>
+#include <QElapsedTimer>
 
 namespace {
+
+    // Valid init_format values according to schema
+    static const QStringList VALID_INIT_FORMATS = {
+        QStringLiteral(""),
+        QStringLiteral("systemd"),
+        QStringLiteral("cloudinit"),
+        QStringLiteral("cloudinit-rpi"),
+        QStringLiteral("rpi-preseed"),
+        QStringLiteral("none")
+    };
+
+    // Validate init_format value and return true if valid
+    bool isValidInitFormat(const QString &initFormat) {
+        return VALID_INIT_FORMATS.contains(initFormat);
+    }
+
+    // Recursively filter OS entries with invalid init_format values
+    QJsonArray filterInvalidInitFormats(const QJsonArray &list) {
+        QJsonArray filtered;
+        
+        for (const auto &value : list) {
+            QJsonObject entry = value.toObject();
+            QString initFormat = entry["init_format"].toString();
+            
+            // Validate init_format if present (empty string is valid, means no customization)
+            if (!isValidInitFormat(initFormat)) {
+                QString name = entry["name"].toString();
+                qWarning() << "OSListModel: Pruning OS entry with invalid init_format '" 
+                           << initFormat << "':" << name
+                           << "(valid values: '', 'systemd', 'cloudinit', 'cloudinit-rpi', 'rpi-preseed', 'none')";
+                continue;
+            }
+            
+            // Check if this entry has subitems and process them recursively
+            if (entry.contains(QLatin1String("subitems"))) {
+                QJsonArray subitems = entry["subitems"].toArray();
+                QJsonArray filteredSubitems = filterInvalidInitFormats(subitems);
+                
+                // Only include parent entry if it has valid subitems
+                if (!filteredSubitems.isEmpty()) {
+                    entry["subitems"] = filteredSubitems;
+                    filtered.append(entry);
+                } else {
+                    // Parent has no valid subitems, skip it
+                    QString name = entry["name"].toString();
+                    qWarning() << "OSListModel: Pruning OS entry with no valid subitems:" << name;
+                }
+            } else {
+                // Leaf entry with valid init_format
+                filtered.append(entry);
+            }
+        }
+        
+        return filtered;
+    }
 
     QJsonArray getListForLocale(QJsonObject root) {
         // "os_list_<locale>" has priority
@@ -50,6 +107,9 @@ namespace {
             qWarning() << Q_FUNC_INFO << "Expected to find os_list key" << root.keys();
             return {};
         }
+
+        // Filter out entries with invalid init_format values
+        list = filterInvalidInitFormats(list);
 
         // Apply random shuffling to arrays containing 'random' flag
         std::function<void(QJsonArray&)> shuffleIfRandom = [&](QJsonArray &lst) {
@@ -163,6 +223,55 @@ namespace {
             }
         }
     }
+
+    // Sanitize icon source: allow known-good forms and drop malformed URLs to avoid runtime fetch errors
+    static QString sanitizeIconSource(const QString &raw)
+    {
+        if (raw.isEmpty()) return QString();
+
+        // Common local relative path used by repository JSON
+        if (raw.startsWith("icons/")) {
+            return QStringLiteral("../") + raw;
+        }
+
+        // Allow qrc resources
+        if (raw.startsWith("qrc:/") || raw.startsWith("qrc://")) {
+            return raw;
+        }
+
+        // For explicit URLs, validate scheme and host as appropriate
+        const QUrl url(raw);
+        if (url.isValid() && !url.scheme().isEmpty()) {
+            const QString scheme = url.scheme().toLower();
+
+            if (scheme == QLatin1String("http") || scheme == QLatin1String("https")) {
+                if (!url.host().isEmpty()) {
+                    return raw; // looks well-formed; allow
+                } else {
+                    qWarning() << "OSListModel: dropping icon with missing host:" << raw;
+                    return QString();
+                }
+            } else if (scheme == QLatin1String("file")) {
+                // Allow local file URLs without filesystem validation - exists()/isFile()
+                // calls can be slow on iCloud-synced directories or network volumes,
+                // and this function is called for every icon during model population.
+                // QML's Image component handles missing files gracefully.
+                if (url.isLocalFile()) {
+                    return raw;
+                }
+                // Non-local file URL; drop
+                qWarning() << "OSListModel: dropping non-local file URL icon:" << raw;
+                return QString();
+            } else {
+                // Unknown scheme; pass through (QML may support it) but log once
+                qWarning() << "OSListModel: icon uses unrecognized scheme, passing through:" << raw;
+                return raw;
+            }
+        }
+
+        // No scheme: treat as relative path; allow as-is (QML will resolve relative to QML file)
+        return raw;
+    }
 }
 
 OSListModel::OSListModel(ImageWriter &imageWriter)
@@ -170,11 +279,15 @@ OSListModel::OSListModel(ImageWriter &imageWriter)
 
 bool OSListModel::reload()
 {
+    QElapsedTimer parseTimer;
+    parseTimer.start();
+    
     QJsonDocument doc = _imageWriter.getFilteredOSlistDocument();
     QJsonObject root = doc.object();
 
     QJsonArray list = parseOSJson(root);
     if (list.isEmpty()) {
+        emit eventOsListParse(static_cast<quint32>(parseTimer.elapsed()), false);
         return false;
     }
 
@@ -201,13 +314,32 @@ bool OSListModel::reload()
             os.devices.append(device.toString());
         }
 
+        QJsonArray capsArray = obj["capabilities"].toArray();
+        os.capabilities.reserve(capsArray.size());
+        for (const auto &cap : capsArray) {
+            os.capabilities.append(cap.toString());
+        }
+
         os.extractSize = obj["extract_size"].toDouble();
         os.imageDownloadSize = obj["image_download_size"].toDouble();
 
         os.random = obj["random"].toBool();
 
         os.extractSha256 = obj["extract_sha256"].toString();
-        os.icon = obj["icon"].toString();
+        os.bmapUrl = obj["bmap_url"].toString();
+        // Icon source: rewrite to image provider to avoid network head-of-line blocking
+        {
+            const QString rawIcon = obj["icon"].toString();
+            const QString sanitized = sanitizeIconSource(rawIcon);
+            if (!sanitized.isEmpty()) {
+                // If already qrc or local relative, keep as-is. For http(s), route via image://icons/
+                if (sanitized.startsWith("http://") || sanitized.startsWith("https://")) {
+                    os.icon = QStringLiteral("image://icons/") + sanitized;
+                } else {
+                    os.icon = sanitized;
+                }
+            }
+        }
         os.initFormat = obj["init_format"].toString();
         os.releaseDate = obj["release_date"].toString();
         os.url = obj["url"].toString();
@@ -215,6 +347,7 @@ bool OSListModel::reload()
         os.tooltip = obj["tooltip"].toString();
         os.website = obj["website"].toString();
         os.architecture = obj["architecture"].toString();
+        os.enableRPiConnect = obj.value("enable_rpi_connect").toBool(false);
 
         _osList.append(os);
     }
@@ -223,9 +356,20 @@ bool OSListModel::reload()
     markFirstAsRecommended();
 
     endResetModel();
+    
+    emit eventOsListParse(static_cast<quint32>(parseTimer.elapsed()), true);
 
     return true;
 }
+
+void OSListModel::softRefresh()
+{
+    if (_osList.isEmpty()) return;
+    const QModelIndex first = index(0);
+    const QModelIndex last = index(_osList.size() - 1);
+    emit dataChanged(first, last);
+}
+
 
 int OSListModel::rowCount(const QModelIndex &) const
 {
@@ -238,7 +382,9 @@ QHash<int, QByteArray> OSListModel::roleNames() const
         { NameRole, "name" },
         { DescriptionRole, "description" },
         { DevicesRole, "devices" },
+        { CapabilitiesRole, "capabilities" },
         { ExtractSha256Role, "extract_sha256" },
+        { BmapUrlRole, "bmap_url" },
         { ExtractSizeRole, "extract_size" },
         { IconRole, "icon" },
         { ImageDownloadSizeRole, "image_download_size" },
@@ -248,7 +394,8 @@ QHash<int, QByteArray> OSListModel::roleNames() const
         { SubItemsJsonRole, "subitems_json" },
         { TooltipRole, "tooltip" },
         { WebsiteRole, "website" },
-        { ArchitectureRole, "architecture" }
+        { ArchitectureRole, "architecture" },
+        { PiConnectRole, "enable_rpi_connect" }
     };
 }
 
@@ -266,8 +413,12 @@ QVariant OSListModel::data(const QModelIndex &index, int role) const {
             return os.description;
         case DevicesRole:
             return os.devices;
+        case CapabilitiesRole:
+            return os.capabilities;
         case ExtractSha256Role:
             return os.extractSha256;
+        case BmapUrlRole:
+            return os.bmapUrl;
         case ExtractSizeRole:
             return os.extractSize;
         case IconRole:
@@ -290,6 +441,8 @@ QVariant OSListModel::data(const QModelIndex &index, int role) const {
             return os.website;
         case ArchitectureRole:
             return os.architecture;
+        case PiConnectRole:
+            return os.enableRPiConnect;
     }
 
     return {};
@@ -312,13 +465,21 @@ void OSListModel::markFirstAsRecommended() {
     }
 
     // Second pass: Add the localized "(Recommended)" to the first item if appropriate
-    if (!_osList.isEmpty()) {
-        OS &candidate = _osList[0];
+    // Skip internal items (Erase, Use custom) - these are fallbacks when OS list download fails
+    for (int i = 0; i < _osList.size(); i++) {
+        OS &candidate = _osList[i];
 
+        // Skip internal items (e.g., "internal://format", "internal://custom")
+        if (candidate.url.startsWith(QLatin1String("internal://"))) {
+            continue;
+        }
+
+        // Found a real OS entry - mark it as recommended if appropriate
         if (!candidate.description.isEmpty() &&
             candidate.subitemsJson.isEmpty())
         {
             candidate.description += recommendedString;
         }
+        break;  // Only mark the first real OS
     }
 }
