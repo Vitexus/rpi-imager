@@ -7,8 +7,12 @@ export DH_VERBOSE = 1
 PACKAGES := $(shell dh_listpackages)
 
 %:
-	dh $@
+	dh $@ --buildsystem=cmake --sourcedirectory=src
 
-.PHONY: override_dh_strip 
-override_dh_strip: 
+.PHONY: override_dh_auto_configure
+override_dh_auto_configure:
+	dh_auto_configure -- -DUSE_SYSTEM_LIBS=ON
+
+.PHONY: override_dh_strip
+override_dh_strip:
 	dh_strip --exclude=AppImage --exclude=rpi-imager

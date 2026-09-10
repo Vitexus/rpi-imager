@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.22)
 OPTION (ENABLE_CHECK_VERSION "Check for version updates" ON)
 OPTION (ENABLE_TELEMETRY "Enable sending telemetry" ON)
 OPTION (BUILD_EMBEDDED "Build for Embedded Imager" OFF)
+OPTION (USE_SYSTEM_LIBS "Use system-installed zlib/liblzma/zstd/libarchive/curl instead of fetching and building bundled copies" OFF)
 
 # We use FetchContent_Populate() instead of FetchContent_MakeAvailable() to allow EXCLUDE_FROM_ALL
 # This prevents the dependencies from being built by default, which is our desired behavior
@@ -98,6 +99,23 @@ set(BUILD_STATIC_LIBS ON)
 set(BUILD_SHARED_LIBS OFF)
 
 include(FetchContent)
+
+if(USE_SYSTEM_LIBS)
+    find_package(PkgConfig REQUIRED)
+
+    find_package(ZLIB REQUIRED)
+
+    find_package(LibLZMA REQUIRED)
+
+    pkg_check_modules(ZSTD REQUIRED IMPORTED_TARGET libzstd)
+    set(ZSTD_INCLUDE_DIR ${ZSTD_INCLUDE_DIRS} CACHE PATH "" FORCE)
+    set(ZSTD_LIBRARIES PkgConfig::ZSTD CACHE FILEPATH "" FORCE)
+
+    find_package(LibArchive REQUIRED)
+
+    find_package(CURL REQUIRED)
+    set(CURL_INCLUDE_DIR ${CURL_INCLUDE_DIRS} CACHE PATH "" FORCE)
+else()
 
 # Bundled liblzma
 set(LIBLZMA_VERSION "5.8.1")
@@ -547,6 +565,8 @@ set(CURL_FOUND true CACHE BOOL "" FORCE)
 set(CURL_LIBRARIES libcurl_static CACHE FILEPATH "" FORCE)
 set(CURL_INCLUDE_DIR ${curl_SOURCE_DIR}/include CACHE PATH "" FORCE)
 set(CURL_INCLUDE_DIRS ${curl_SOURCE_DIR}/include CACHE PATH "" FORCE)
+
+endif() # USE_SYSTEM_LIBS
 
 # Adding headers explicity so they are displayed in Qt Creator
 set(HEADERS config.h imagewriter.h networkaccessmanagerfactory.h nan.h drivelistitem.h drivelistmodel.h drivelistmodelpollthread.h driveformatthread.h powersaveblocker.h cli.h
@@ -1268,6 +1288,8 @@ else()
     install(FILES "${CMAKE_CURRENT_LIST_DIR}/../debian/org.raspberrypi.rpi-imager.metainfo.xml" DESTINATION share/metainfo)
 endif()
 
-add_dependencies(${PROJECT_NAME} ZLIB::ZLIB)
+if(NOT USE_SYSTEM_LIBS)
+    add_dependencies(${PROJECT_NAME} ZLIB::ZLIB)
+endif()
 include_directories(${CURL_INCLUDE_DIR} ${LibArchive_INCLUDE_DIR} ${LIBLZMA_INCLUDE_DIRS} ${LIBDRM_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${ZSTD_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${QT}::Core ${QT}::Quick ${QT}::Svg ${CURL_LIBRARIES} ${LibArchive_LIBRARIES} ${ZSTD_LIBRARIES} ${LIBLZMA_LIBRARIES} ZLIB::ZLIB ${LIBDRM_LIBRARIES} ${ATOMIC_LIBRARY} ${EXTRALIBS})
