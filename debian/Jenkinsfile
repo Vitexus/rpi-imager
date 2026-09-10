@@ -76,7 +76,12 @@ architectures.each {
                         sh 'dch -b -v ' + ver  + ' "' + env.BUILD_TAG  + '"'
                         sh 'sudo apt-get update --allow-releaseinfo-change'
                         sh 'sudo chown jenkins:jenkins ..'
-                        sh 'debuild-pbuilder  -i -us -uc -b'
+                        // debian/control gates each binary package behind a Build-Profile
+                        // (desktop/amd64/embedded/cli); with none active dh finds nothing to
+                        // build at all. rpi-imager-amd64 is <amd64 !embedded>, so amd64 and
+                        // embedded can't both be active - pick the profile set per architecture.
+                        def profiles = architecture == 'amd64' ? 'desktop,amd64,cli' : 'desktop,embedded,cli'
+                        sh 'debuild-pbuilder -i -us -uc -b -P' + profiles
                         sh 'mkdir -p $WORKSPACE/dist/debian/ ; rm -rf $WORKSPACE/dist/debian/* ; for deb in $(cat debian/files | awk \'{print $1}\'); do mv "../$deb" $WORKSPACE/dist/debian/; done'
                     }
                 }
