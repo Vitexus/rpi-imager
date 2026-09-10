@@ -247,8 +247,15 @@ endif() # USE_SYSTEM_LIBS
 # Bundled yescrypt (no system package; always built from bundled source)
 include(dependencies/yescrypt.cmake)
 
-# Bundled libusb (for rpiboot Compute Module support)
-include(dependencies/libusb.cmake)
+# libusb (for rpiboot Compute Module support)
+if(USE_SYSTEM_LIBS)
+    pkg_check_modules(LIBUSB REQUIRED IMPORTED_TARGET libusb-1.0)
+    set(LIBUSB_INCLUDE_DIR ${LIBUSB_INCLUDE_DIRS} CACHE PATH "" FORCE)
+    set(LIBUSB_LIBRARIES PkgConfig::LIBUSB CACHE FILEPATH "" FORCE)
+else()
+    # Bundled libusb
+    include(dependencies/libusb.cmake)
+endif()
 
 # Add dependencies
 if (APPLE)
@@ -339,9 +346,20 @@ set(SOURCES ${SOURCES}
 )
 
 # Find Qt components - different requirements for CLI-only vs GUI builds
+#
+# Upstream requires Qt >= 6.9. Debian trixie only packages Qt 6.8.2, so
+# USE_SYSTEM_LIBS builds ask for 6.8 instead; this only relaxes the version
+# *check*, it does not guarantee the code doesn't use a 6.9-only API -- such
+# usage will surface as a compile error against system Qt.
+if(USE_SYSTEM_LIBS)
+    set(RPI_IMAGER_QT_MIN_VERSION 6.8)
+else()
+    set(RPI_IMAGER_QT_MIN_VERSION 6.9)
+endif()
+
 if(BUILD_CLI_ONLY)
     # CLI-only build: need ONLY Core and Network for downloading
-    find_package(Qt6 6.9 COMPONENTS Core Network OPTIONAL_COMPONENTS LinguistTools)
+    find_package(Qt6 ${RPI_IMAGER_QT_MIN_VERSION} COMPONENTS Core Network OPTIONAL_COMPONENTS LinguistTools)
 else()
     # Regular GUI build: need Core, Quick, Svg, Network, Gui
     # DBus is used on Linux for the suspend inhibitor, portal file dialogs,
@@ -350,9 +368,9 @@ else()
     # libdbus/libsystemd, so it is built without DBus; the QT_DBUS_LIB guards in
     # the platform code then compile those paths out (see linux/Platform.cmake).
     if(UNIX AND NOT APPLE AND NOT BUILD_EMBEDDED)
-        find_package(Qt6 6.9 COMPONENTS Core Gui Quick Svg Network DBus OPTIONAL_COMPONENTS LinguistTools)
+        find_package(Qt6 ${RPI_IMAGER_QT_MIN_VERSION} COMPONENTS Core Gui Quick Svg Network DBus OPTIONAL_COMPONENTS LinguistTools)
     else()
-        find_package(Qt6 6.9 COMPONENTS Core Gui Quick Svg Network OPTIONAL_COMPONENTS LinguistTools)
+        find_package(Qt6 ${RPI_IMAGER_QT_MIN_VERSION} COMPONENTS Core Gui Quick Svg Network OPTIONAL_COMPONENTS LinguistTools)
     endif()
 endif()
 if (Qt6_FOUND)
@@ -603,7 +621,7 @@ else()
 endif()
 
 if(USE_SYSTEM_LIBS)
-    add_dependencies(${PROJECT_NAME} yescrypt usb-1.0-static)
+    add_dependencies(${PROJECT_NAME} yescrypt)
 else()
     add_dependencies(${PROJECT_NAME} zlibstatic yescrypt usb-1.0-static)
 endif()
