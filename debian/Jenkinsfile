@@ -3,7 +3,8 @@
 // Part of https://github.com/VitexSoftware/BuildImages
 
 String[] architectures = [] // 'amd64', 'aarch64', 'arm', 'i386'
-String[] distributions = ['debian:bullseye', 'debian:bookworm', 'ubuntu:jammy']
+// bullseye dropped: EOL, no longer has a Release file on repo.vitexsoftware.com
+String[] distributions = ['debian:bookworm', 'debian:trixie', 'debian:forky', 'ubuntu:jammy', 'ubuntu:resolute']
 
 String vendor = 'vitexsoftware'
 String distribution = ''
